@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { setupSwagger } from './swagger/swagger.config';
@@ -26,6 +26,14 @@ async function bootstrap() {
 
   // Set up Swagger UI
   setupSwagger(app);
+
+  // Enable global validation pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
 
   await app.listen(port);
 
