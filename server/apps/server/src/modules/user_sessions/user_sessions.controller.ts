@@ -15,7 +15,7 @@ import { QueryUserSessionDto } from './dto/query_user_session.dto';
 import { UserSession } from './entities/user_session.entity';
 import { ApiUserSessions } from './user_sessions.swagger';
 
-@Controller('user-sessions')
+@Controller('user_sessions')
 @ApiUserSessions.controller()
 export class UserSessionsController {
   constructor(private readonly service: UserSessionsService) {}

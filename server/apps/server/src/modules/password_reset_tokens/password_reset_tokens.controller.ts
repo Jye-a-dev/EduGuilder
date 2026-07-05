@@ -13,7 +13,7 @@ import { QueryPasswordResetTokenDto } from './dto/query_password_reset_token.dto
 import { PasswordResetToken } from './entities/password_reset_token.entity';
 import { ApiPasswordResetTokens } from './password_reset_tokens.swagger';
 
-@Controller('password-reset-tokens')
+@Controller('password_reset_tokens')
 @ApiPasswordResetTokens.controller()
 export class PasswordResetTokensController {
   constructor(private readonly service: PasswordResetTokensService) {}

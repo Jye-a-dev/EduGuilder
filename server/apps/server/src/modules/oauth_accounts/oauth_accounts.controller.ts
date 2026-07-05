@@ -15,7 +15,7 @@ import { QueryOAuthAccountDto } from './dto/query_oauth_account.dto';
 import { OAuthAccount } from './entities/oauth_account.entity';
 import { ApiOAuthAccounts } from './oauth_accounts.swagger';
 
-@Controller('oauth-accounts')
+@Controller('oauth_accounts')
 @ApiOAuthAccounts.controller()
 export class OAuthAccountsController {
   constructor(private readonly oauthAccountsService: OAuthAccountsService) {}
