@@ -3,6 +3,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { setupSwagger } from './swagger/swagger.config';
+import { DatabaseExceptionFilter } from './common/filters/database-exception.filter';
 
 interface RouteLayer {
   route?: {
@@ -34,6 +35,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // Enable database exceptions filter
+  app.useGlobalFilters(new DatabaseExceptionFilter());
 
   await app.listen(port);
 
