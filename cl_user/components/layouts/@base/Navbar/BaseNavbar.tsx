@@ -2,14 +2,16 @@ import type { ReactNode } from "react";
 
 type BaseNavbarProps = {
   brand: ReactNode;
+  children?: ReactNode;
   action?: ReactNode;
 };
 
-export default function BaseNavbar({ brand, action }: BaseNavbarProps) {
+export default function BaseNavbar({ brand, children, action }: BaseNavbarProps) {
   return (
-    <header className="border-b border-neutral-200">
-      <div className="flex items-center justify-between px-6 py-6 lg:px-8">
+    <header className="sticky top-0 z-50 backdrop-blur-xl bg-brand-dark/60 border-b border-gray-950">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         <div>{brand}</div>
+        {children ? <div>{children}</div> : null}
         {action ? <div>{action}</div> : null}
       </div>
     </header>
