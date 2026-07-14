@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 
-import PublicSetup from "@/components/layouts/(public)/PublicSetup";
-
-import "../globals.css";
+import "../../globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["vietnamese"],
@@ -19,15 +17,15 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EduPath Admin Portal - Secure Central Command",
-  description: "Cổng bảo mật tối cao dành riêng cho Đội ngũ Vận hành & Phát triển EduPath.",
+  title: "EduPath Admin - Command Dashboard",
+  description: "Bảng điều khiển trung tâm quản trị hệ thống EduPath.",
 };
 
-type PublicLayoutProps = {
+type AdminLayoutProps = {
   children: ReactNode;
 };
 
-export default function PublicLayout({ children }: PublicLayoutProps) {
+export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <html lang="vi" className="scroll-smooth">
       <head>
@@ -39,11 +37,9 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
         />
       </head>
       <body
-        className={`${plusJakartaSans.variable} ${jetbrainsMono.variable} font-sans antialiased grid-bg min-h-screen bg-cyber-bg text-[#F3F4F6]`}
+        className={`${plusJakartaSans.variable} ${jetbrainsMono.variable} font-sans antialiased bg-cyber-bg text-gray-100 min-h-screen`}
       >
-        <div className="flex min-h-screen w-full flex-col">
-          <PublicSetup>{children}</PublicSetup>
-        </div>
+        {children}
       </body>
     </html>
   );

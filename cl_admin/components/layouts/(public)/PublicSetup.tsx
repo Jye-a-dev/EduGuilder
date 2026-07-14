@@ -9,10 +9,11 @@ type PublicSetupProps = {
 
 export default function PublicSetup({ children }: PublicSetupProps) {
   return (
-    <>
+    <div className="flex min-h-screen flex-col bg-cyber-bg text-gray-100">
       <PublicNavbar />
-      <main className="flex flex-1 px-6 py-14 lg:px-8">{children}</main>
+      <main className="relative flex flex-1 flex-col justify-center">{children}</main>
       <PublicFooter />
-    </>
+    </div>
   );
 }
+
