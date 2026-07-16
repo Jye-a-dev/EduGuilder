@@ -33,6 +33,7 @@ CREATE TABLE "universities" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "code" VARCHAR(50) UNIQUE NOT NULL,
     "name" VARCHAR(255) NOT NULL,
+    "region" VARCHAR(50),                           -- Khu vực địa lý: 'Miền Bắc', 'Miền Trung', 'Miền Nam'
     "logo_storage_key" VARCHAR(512),               -- Thay vì lưu full URL CDN, lưu Key để linh hoạt
     "tuition_fees" VARCHAR(100),
     "is_verified" BOOLEAN DEFAULT false,
@@ -40,6 +41,9 @@ CREATE TABLE "universities" (
     "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Migration: Thêm cột region cho bảng universities (chạy nếu bảng đã tồn tại)
+-- ALTER TABLE "universities" ADD COLUMN IF NOT EXISTS "region" VARCHAR(50);
 
 -- Tách thông tin điểm chuẩn từ JSONB sang bảng riêng để hỗ trợ bài toán Query (Ví dụ: WHERE score > 27)
 CREATE TABLE "university_admissions" (

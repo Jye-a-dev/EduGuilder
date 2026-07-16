@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsIn } from 'class-validator';
 
 export class UpdateUniversityDto {
   @ApiPropertyOptional({
@@ -17,6 +17,17 @@ export class UpdateUniversityDto {
   @IsString()
   @IsOptional()
   name?: string;
+
+  @ApiPropertyOptional({
+    example: 'Miền Bắc',
+    description: 'Geographic region of the university',
+    enum: ['Miền Bắc', 'Miền Trung', 'Miền Nam'],
+    nullable: true,
+  })
+  @IsString()
+  @IsIn(['Miền Bắc', 'Miền Trung', 'Miền Nam'])
+  @IsOptional()
+  region?: string | null;
 
   @ApiPropertyOptional({
     example: 'logos/ftu_logo.png',

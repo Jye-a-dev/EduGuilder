@@ -24,6 +24,7 @@ export interface University {
   id: string;
   code: string;
   name: string;
+  region?: string | null;
   logo_storage_key?: string | null;
   tuition_fees?: string | null;
   is_verified: boolean;

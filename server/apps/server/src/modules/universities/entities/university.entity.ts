@@ -21,6 +21,15 @@ export class University implements IUniversity {
   name: string;
 
   @ApiPropertyOptional({
+    example: 'Miền Bắc',
+    description:
+      'Geographic region of the university (Miền Bắc, Miền Trung, Miền Nam)',
+    nullable: true,
+    enum: ['Miền Bắc', 'Miền Trung', 'Miền Nam'],
+  })
+  region?: string | null;
+
+  @ApiPropertyOptional({
     example: 'logos/ftu_logo.png',
     description: 'Storage key for the university logo',
     nullable: true,

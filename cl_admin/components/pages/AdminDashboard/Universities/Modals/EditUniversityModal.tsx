@@ -10,12 +10,16 @@ interface EditUniversityModalProps {
   setEditUniCode: (val: string) => void;
   editUniName: string;
   setEditUniName: (val: string) => void;
+  editUniRegion: string;
+  setEditUniRegion: (val: string) => void;
   editUniTuition: string;
   setEditUniTuition: (val: string) => void;
   editUniVerified: boolean;
   setEditUniVerified: (val: boolean) => void;
   onSubmit: (e: FormEvent) => void;
 }
+
+const REGIONS = ["Miền Bắc", "Miền Trung", "Miền Nam"];
 
 export default function EditUniversityModal({
   isOpen,
@@ -25,6 +29,8 @@ export default function EditUniversityModal({
   setEditUniCode,
   editUniName,
   setEditUniName,
+  editUniRegion,
+  setEditUniRegion,
   editUniTuition,
   setEditUniTuition,
   editUniVerified,
@@ -61,6 +67,21 @@ export default function EditUniversityModal({
               onChange={(e) => setEditUniName(e.target.value)}
               className="w-full rounded-lg border border-gray-800 bg-cyber-bg px-3 py-2 text-xs text-white focus:border-cyber-primary focus:outline-none"
             />
+          </div>
+          <div>
+            <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">
+              Khu vực / Miền
+            </label>
+            <select
+              value={editUniRegion}
+              onChange={(e) => setEditUniRegion(e.target.value)}
+              className="w-full rounded-lg border border-gray-800 bg-cyber-bg px-3 py-2 text-xs text-white focus:border-cyber-primary focus:outline-none appearance-none"
+            >
+              <option value="">— Chưa phân loại —</option>
+              {REGIONS.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">

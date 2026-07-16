@@ -10,10 +10,14 @@ interface CreateUniversityModalProps {
   setNewUniCode: (val: string) => void;
   newUniName: string;
   setNewUniName: (val: string) => void;
+  newUniRegion: string;
+  setNewUniRegion: (val: string) => void;
   newUniTuition: string;
   setNewUniTuition: (val: string) => void;
   onSubmit: (e: FormEvent) => void;
 }
+
+const REGIONS = ["Miền Bắc", "Miền Trung", "Miền Nam"];
 
 export default function CreateUniversityModal({
   isOpen,
@@ -23,6 +27,8 @@ export default function CreateUniversityModal({
   setNewUniCode,
   newUniName,
   setNewUniName,
+  newUniRegion,
+  setNewUniRegion,
   newUniTuition,
   setNewUniTuition,
   onSubmit,
@@ -59,6 +65,21 @@ export default function CreateUniversityModal({
               onChange={(e) => setNewUniName(e.target.value)}
               className="w-full rounded-lg border border-gray-800 bg-cyber-bg px-3 py-2 text-xs text-white placeholder-gray-700 focus:border-cyber-primary focus:outline-none"
             />
+          </div>
+          <div>
+            <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">
+              Khu vực / Miền
+            </label>
+            <select
+              value={newUniRegion}
+              onChange={(e) => setNewUniRegion(e.target.value)}
+              className="w-full rounded-lg border border-gray-800 bg-cyber-bg px-3 py-2 text-xs text-white focus:border-cyber-primary focus:outline-none appearance-none"
+            >
+              <option value="">— Chưa phân loại —</option>
+              {REGIONS.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">

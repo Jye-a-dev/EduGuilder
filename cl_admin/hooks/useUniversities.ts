@@ -31,12 +31,12 @@ export function useUniversities(token: string | null) {
     }
   }, [token]);
 
-  const createUniversity = async (code: string, name: string, tuitionFees: string) => {
+  const createUniversity = async (code: string, name: string, tuitionFees: string, region?: string) => {
     if (!token) return;
     setError(null);
     await apiClient.post(
       "/universities",
-      { code, name, tuition_fees: tuitionFees || null },
+      { code, name, tuition_fees: tuitionFees || null, region: region || null },
       { token }
     );
     await fetchUniversities();

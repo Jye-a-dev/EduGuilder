@@ -14,8 +14,8 @@ function DashboardInner() {
   const router = useRouter();
 
   const { universities, fetchUniversities } = useUniversities(token);
-  const { pendingVerificationsCount, fetchVerifications } = useStudentVerifications(token);
-  const { pendingReviewsCount, fetchReviews } = useUniversityReviews(token);
+  const { verifications, pendingVerificationsCount, fetchVerifications } = useStudentVerifications(token);
+  const { reviews, pendingReviewsCount, fetchReviews } = useUniversityReviews(token);
 
   useEffect(() => {
     Promise.all([fetchVerifications(), fetchReviews(), fetchUniversities()]);
@@ -32,6 +32,9 @@ function DashboardInner() {
       pendingVerificationsCount={pendingVerificationsCount}
       pendingReviewsCount={pendingReviewsCount}
       universitiesCount={universities.length}
+      universities={universities}
+      reviews={reviews}
+      verifications={verifications}
       setActiveTab={setActiveTab}
     />
   );

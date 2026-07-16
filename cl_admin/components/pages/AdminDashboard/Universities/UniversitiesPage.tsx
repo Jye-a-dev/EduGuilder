@@ -36,11 +36,13 @@ function UniversitiesInner() {
 
   const [newUniCode, setNewUniCode] = useState("");
   const [newUniName, setNewUniName] = useState("");
+  const [newUniRegion, setNewUniRegion] = useState("");
   const [newUniTuition, setNewUniTuition] = useState("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editUniCode, setEditUniCode] = useState("");
   const [editUniName, setEditUniName] = useState("");
+  const [editUniRegion, setEditUniRegion] = useState("");
   const [editUniTuition, setEditUniTuition] = useState("");
   const [editUniVerified, setEditUniVerified] = useState(false);
 
@@ -59,9 +61,10 @@ function UniversitiesInner() {
     e.preventDefault();
     setModalFeedback(null);
     try {
-      await createUniversity(newUniCode, newUniName, newUniTuition);
+      await createUniversity(newUniCode, newUniName, newUniTuition, newUniRegion);
       setNewUniCode("");
       setNewUniName("");
+      setNewUniRegion("");
       setNewUniTuition("");
       closeModal();
     } catch (err: unknown) {
@@ -73,6 +76,7 @@ function UniversitiesInner() {
     setEditingId(u.id);
     setEditUniCode(u.code);
     setEditUniName(u.name);
+    setEditUniRegion(u.region || "");
     setEditUniTuition(u.tuition_fees || "");
     setEditUniVerified(u.is_verified);
     setActiveModal("edit-university");
@@ -86,6 +90,7 @@ function UniversitiesInner() {
       await updateUniversity(editingId, {
         code: editUniCode,
         name: editUniName,
+        region: editUniRegion || null,
         tuition_fees: editUniTuition || null,
         is_verified: editUniVerified,
       });
@@ -133,6 +138,8 @@ function UniversitiesInner() {
         setNewUniCode={setNewUniCode}
         newUniName={newUniName}
         setNewUniName={setNewUniName}
+        newUniRegion={newUniRegion}
+        setNewUniRegion={setNewUniRegion}
         newUniTuition={newUniTuition}
         setNewUniTuition={setNewUniTuition}
         onSubmit={handleCreateUniversitySubmit}
@@ -146,6 +153,8 @@ function UniversitiesInner() {
         setEditUniCode={setEditUniCode}
         editUniName={editUniName}
         setEditUniName={setEditUniName}
+        editUniRegion={editUniRegion}
+        setEditUniRegion={setEditUniRegion}
         editUniTuition={editUniTuition}
         setEditUniTuition={setEditUniTuition}
         editUniVerified={editUniVerified}

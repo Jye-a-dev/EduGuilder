@@ -4,6 +4,13 @@ import { useState, useMemo } from "react";
 import type { University } from "../types";
 
 type VerifiedFilter = "all" | "verified" | "unverified";
+type RegionFilter = "all" | "Miền Bắc" | "Miền Trung" | "Miền Nam";
+
+const REGION_COLOR: Record<string, string> = {
+  "Miền Bắc":  "bg-blue-500/10 border-blue-500/30 text-blue-400",
+  "Miền Trung": "bg-amber-500/10 border-amber-500/30 text-amber-400",
+  "Miền Nam":  "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
+};
 
 interface UniversitiesTabProps {
   universities: University[];
@@ -28,6 +35,7 @@ export default function UniversitiesTab({
 }: UniversitiesTabProps) {
   const [search, setSearch] = useState("");
   const [verifiedFilter, setVerifiedFilter] = useState<VerifiedFilter>("all");
+  const [regionFilter, setRegionFilter] = useState<RegionFilter>("all");
 
   const filtered = useMemo(() => {
     return universities.filter((u) => {
@@ -39,15 +47,26 @@ export default function UniversitiesTab({
       const matchesVerified =
         verifiedFilter === "all" ||
         (verifiedFilter === "verified" ? u.is_verified : !u.is_verified);
-      return matchesSearch && matchesVerified;
+      const matchesRegion =
+        regionFilter === "all" || u.region === regionFilter;
+      return matchesSearch && matchesVerified && matchesRegion;
     });
-  }, [universities, search, verifiedFilter]);
+  }, [universities, search, verifiedFilter, regionFilter]);
 
   const counts = useMemo(
     () => ({
       all: universities.length,
       verified: universities.filter((u) => u.is_verified).length,
       unverified: universities.filter((u) => !u.is_verified).length,
+    }),
+    [universities]
+  );
+
+  const regionCounts = useMemo(
+    () => ({
+      "Miền Bắc": universities.filter((u) => u.region === "Miền Bắc").length,
+      "Miền Trung": universities.filter((u) => u.region === "Miền Trung").length,
+      "Miền Nam": universities.filter((u) => u.region === "Miền Nam").length,
     }),
     [universities]
   );
@@ -68,8 +87,18 @@ export default function UniversitiesTab({
           />
         </div>
 
-        {/* Verified Filter Pills */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        <button
+          onClick={() => setActiveModal("create-university")}
+          className="px-4 py-2 rounded-lg bg-linear-to-r from-cyber-primary to-cyber-cyan text-xs font-bold text-white shadow hover:opacity-90 active:scale-95 transition-all shrink-0"
+        >
+          <i className="fa-solid fa-plus mr-1.5" /> Thêm Mới
+        </button>
+      </div>
+
+      {/* Filter row */}
+      <div className="flex flex-wrap gap-2">
+        {/* Verified Filter */}
+        <div className="flex items-center gap-1.5">
           {(["all", "verified", "unverified"] as const).map((s) => {
             const label: Record<typeof s, string> = {
               all: "Tất cả",
@@ -98,12 +127,42 @@ export default function UniversitiesTab({
           })}
         </div>
 
-        <button
-          onClick={() => setActiveModal("create-university")}
-          className="px-4 py-2 rounded-lg bg-linear-to-r from-cyber-primary to-cyber-cyan text-xs font-bold text-white shadow hover:opacity-90 active:scale-95 transition-all shrink-0"
-        >
-          <i className="fa-solid fa-plus mr-1.5" /> Thêm Mới
-        </button>
+        <div className="w-px bg-gray-800 self-stretch mx-1" />
+
+        {/* Region Filter */}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setRegionFilter("all")}
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all ${
+              regionFilter === "all"
+                ? "border-gray-600 text-gray-300 bg-gray-800/50"
+                : "border-gray-800 text-gray-600 bg-transparent hover:border-gray-700 hover:text-gray-400"
+            }`}
+          >
+            Tất cả khu vực
+          </button>
+          {(["Miền Bắc", "Miền Trung", "Miền Nam"] as const).map((r) => {
+            const active = regionFilter === r;
+            const cls: Record<string, string> = {
+              "Miền Bắc": "border-blue-500/40 text-blue-400 bg-blue-500/10",
+              "Miền Trung": "border-amber-500/40 text-amber-400 bg-amber-500/10",
+              "Miền Nam": "border-emerald-500/40 text-emerald-400 bg-emerald-500/10",
+            };
+            return (
+              <button
+                key={r}
+                onClick={() => setRegionFilter(r)}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all ${
+                  active
+                    ? cls[r]
+                    : "border-gray-800 text-gray-600 bg-transparent hover:border-gray-700 hover:text-gray-400"
+                }`}
+              >
+                {r} <span className="opacity-60">({regionCounts[r]})</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Table */}
@@ -114,6 +173,7 @@ export default function UniversitiesTab({
               <th className="p-4">University ID</th>
               <th className="p-4">Mã Code</th>
               <th className="p-4">Tên Trường</th>
+              <th className="p-4">Khu Vực</th>
               <th className="p-4">Học phí</th>
               <th className="p-4">Xác thực</th>
               <th className="p-4 text-right">Hành động</th>
@@ -123,7 +183,7 @@ export default function UniversitiesTab({
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="animate-pulse">
-                  {Array.from({ length: 6 }).map((__, j) => (
+                  {Array.from({ length: 7 }).map((__, j) => (
                     <td key={j} className="p-4">
                       <div className="h-3 bg-gray-800 rounded w-3/4" />
                     </td>
@@ -132,7 +192,7 @@ export default function UniversitiesTab({
               ))
             ) : error ? (
               <tr>
-                <td colSpan={6} className="p-10 text-center">
+                <td colSpan={7} className="p-10 text-center">
                   <div className="inline-flex flex-col items-center gap-3">
                     <i className="fa-solid fa-triangle-exclamation text-cyber-alert text-2xl" />
                     <p className="text-cyber-alert font-mono text-xs">{error}</p>
@@ -149,8 +209,8 @@ export default function UniversitiesTab({
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-gray-500 font-mono">
-                  {search || verifiedFilter !== "all"
+                <td colSpan={7} className="p-8 text-center text-gray-500 font-mono">
+                  {search || verifiedFilter !== "all" || regionFilter !== "all"
                     ? "Không có kết quả phù hợp với bộ lọc."
                     : "Không tìm thấy dữ liệu trường đại học nào."}
                 </td>
@@ -161,6 +221,15 @@ export default function UniversitiesTab({
                   <td className="p-4 font-mono text-[10px] text-gray-455 select-all">{u.id}</td>
                   <td className="p-4 font-mono font-bold text-cyber-cyan">{u.code}</td>
                   <td className="p-4 text-gray-200 font-bold">{u.name}</td>
+                  <td className="p-4">
+                    {u.region ? (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${REGION_COLOR[u.region] ?? "bg-gray-800/50 border-gray-700 text-gray-400"}`}>
+                        {u.region}
+                      </span>
+                    ) : (
+                      <span className="text-gray-600 font-mono">—</span>
+                    )}
+                  </td>
                   <td className="p-4 text-gray-400 font-mono">{u.tuition_fees || "-"}</td>
                   <td className="p-4">
                     <span
@@ -205,5 +274,3 @@ export default function UniversitiesTab({
     </div>
   );
 }
-
-

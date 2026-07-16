@@ -11,13 +11,14 @@ export class UniversitiesRepository {
   async create(data: Partial<University>): Promise<University> {
     const query = `
       INSERT INTO "universities" (
-        code, name, logo_storage_key, tuition_fees, is_verified
-      ) VALUES ($1, $2, $3, $4, $5)
+        code, name, region, logo_storage_key, tuition_fees, is_verified
+      ) VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
     `;
     const values = [
       data.code,
       data.name,
+      data.region || null,
       data.logo_storage_key || null,
       data.tuition_fees || null,
       data.is_verified ?? false,
