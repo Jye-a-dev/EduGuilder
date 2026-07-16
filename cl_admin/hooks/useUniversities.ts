@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { apiClient } from "@/libs/apiClient";
 import type { University } from "@/components/pages/AdminDashboard/types";
+
+interface UniversitiesPage {
+  data: University[];
+  total: number;
+}
 
 export function useUniversities(token: string | null) {
   const [universities, setUniversities] = useState<University[]>([]);
@@ -13,14 +19,13 @@ export function useUniversities(token: string | null) {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:3000/universities", {
-        headers: { Authorization: `Bearer ${token}` },
+      const json = await apiClient.get<UniversitiesPage>("/universities", {
+        token,
+        params: { limit: 100 },
       });
-      if (!res.ok) throw new Error("Không thể tải danh sách trường.");
-      const json = await res.json();
       setUniversities(json.data || []);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Có lỗi xảy ra.");
+      setError(err instanceof Error ? err.message : "Không thể tải danh sách trường.");
     } finally {
       setIsLoading(false);
     }
@@ -29,40 +34,18 @@ export function useUniversities(token: string | null) {
   const createUniversity = async (code: string, name: string, tuitionFees: string) => {
     if (!token) return;
     setError(null);
-    const res = await fetch("http://localhost:3000/universities", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        code,
-        name,
-        tuition_fees: tuitionFees || null,
-      }),
-    });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.message || "Lỗi khi tạo trường đại học.");
-    }
+    await apiClient.post(
+      "/universities",
+      { code, name, tuition_fees: tuitionFees || null },
+      { token }
+    );
     await fetchUniversities();
   };
 
   const updateUniversity = async (id: string, body: Partial<University>) => {
     if (!token) return;
     setError(null);
-    const res = await fetch(`http://localhost:3000/universities/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.message || "Lỗi khi cập nhật trường.");
-    }
+    await apiClient.patch(`/universities/${id}`, body, { token });
     await fetchUniversities();
   };
 
@@ -73,13 +56,10 @@ export function useUniversities(token: string | null) {
   const deleteUniversity = async (id: string) => {
     if (!token) return;
     setError(null);
-    const res = await fetch(`http://localhost:3000/universities/${id}?hardDelete=true`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
+    await apiClient.delete(`/universities/${id}`, {
+      token,
+      params: { hardDelete: true },
     });
-    if (!res.ok) {
-      throw new Error("Không thể xóa trường đại học.");
-    }
     await fetchUniversities();
   };
 

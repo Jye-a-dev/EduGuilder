@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { apiClient } from "@/libs/apiClient";
 import type { StudentVerification, VerifyStatus } from "@/components/pages/AdminDashboard/types";
+
+interface VerificationsPage {
+  data: StudentVerification[];
+  total: number;
+}
 
 export function useStudentVerifications(token: string | null) {
   const [verifications, setVerifications] = useState<StudentVerification[]>([]);
@@ -14,16 +20,17 @@ export function useStudentVerifications(token: string | null) {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:3000/student_verifications", {
-        headers: { Authorization: `Bearer ${token}` },
+      const json = await apiClient.get<VerificationsPage>("/student_verifications", {
+        token,
+        params: { limit: 100 },
       });
-      if (!res.ok) throw new Error("Không thể tải danh sách xác thực.");
-      const json = await res.json();
       const list = json.data || [];
       setVerifications(list);
-      setPendingVerificationsCount(list.filter((x: StudentVerification) => x.status === "pending").length);
+      setPendingVerificationsCount(
+        list.filter((x: StudentVerification) => x.status === "pending").length
+      );
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Có lỗi xảy ra.");
+      setError(err instanceof Error ? err.message : "Không thể tải danh sách xác thực.");
     } finally {
       setIsLoading(false);
     }
@@ -32,21 +39,11 @@ export function useStudentVerifications(token: string | null) {
   const createVerification = async (studentId: string, cardImageKey: string) => {
     if (!token) return;
     setError(null);
-    const res = await fetch("http://localhost:3000/student_verifications", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        student_id: studentId,
-        card_image_key: cardImageKey || "cards/student_card.jpg",
-      }),
-    });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.message || "Lỗi máy chủ khi tạo xác thực.");
-    }
+    await apiClient.post(
+      "/student_verifications",
+      { student_id: studentId, card_image_key: cardImageKey || "cards/student_card.jpg" },
+      { token }
+    );
     await fetchVerifications();
   };
 
@@ -56,59 +53,32 @@ export function useStudentVerifications(token: string | null) {
   ) => {
     if (!token) return;
     setError(null);
-    const res = await fetch(`http://localhost:3000/student_verifications/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.message || "Lỗi khi cập nhật yêu cầu xác thực.");
-    }
+    await apiClient.patch(`/student_verifications/${id}`, body, { token });
     await fetchVerifications();
   };
 
   const approveVerification = async (id: string) => {
     if (!token) return;
     setError(null);
-    const res = await fetch(`http://localhost:3000/student_verifications/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ status: "approved" }),
-    });
-    if (!res.ok) throw new Error("Không thể duyệt yêu cầu.");
+    await apiClient.patch(`/student_verifications/${id}`, { status: "approved" }, { token });
     await fetchVerifications();
   };
 
   const rejectVerification = async (id: string, reason: string) => {
     if (!token) return;
     setError(null);
-    const res = await fetch(`http://localhost:3000/student_verifications/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ status: "rejected", reject_reason: reason }),
-    });
-    if (!res.ok) throw new Error("Không thể từ chối yêu cầu.");
+    await apiClient.patch(
+      `/student_verifications/${id}`,
+      { status: "rejected", reject_reason: reason },
+      { token }
+    );
     await fetchVerifications();
   };
 
   const deleteVerification = async (id: string) => {
     if (!token) return;
     setError(null);
-    const res = await fetch(`http://localhost:3000/student_verifications/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error("Không thể xóa yêu cầu.");
+    await apiClient.delete(`/student_verifications/${id}`, { token });
     await fetchVerifications();
   };
 

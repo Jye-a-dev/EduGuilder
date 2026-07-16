@@ -1,33 +1,24 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
-
-// Layout
+import { useState, useEffect, type FormEvent } from "react";
 import DashboardSetup from "@/components/layouts/(dashboard)/DashboardSetup";
-
-// Custom API Hooks
+import { useDashboard } from "@/components/layouts/(dashboard)/DashboardContext";
 import { useUniversityReviews } from "@/hooks/useUniversityReviews";
-
-// Sub-components
 import ReviewsTab from "./ReviewsTab";
 import CreateReviewModal from "./Modals/CreateReviewModal";
 import EditReviewModal from "./Modals/EditReviewModal";
-
-// Types
 import type { UniversityReview, ModalType } from "../types";
 
-export default function ReviewsPage() {
-  const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
+function ReviewsInner() {
+  const { token } = useDashboard();
 
-  // Active Modals & Selected Edit Target
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [modalFeedback, setModalFeedback] = useState<string | null>(null);
 
-  // Bind Hook
   const {
     reviews,
+    isLoading,
+    error,
     fetchReviews,
     createReview,
     updateReview,
@@ -35,7 +26,6 @@ export default function ReviewsPage() {
     deleteReview,
   } = useUniversityReviews(token);
 
-  // --- FORM STATES ---
   const [newRevUniId, setNewRevUniId] = useState("");
   const [newRevReviewerId, setNewRevReviewerId] = useState("");
   const [newRevRating, setNewRevRating] = useState(5);
@@ -47,23 +37,10 @@ export default function ReviewsPage() {
   const [editRevOfficialReply, setEditRevOfficialReply] = useState("");
   const [editRevIsApproved, setEditRevIsApproved] = useState(false);
 
-  // Authenticate user on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem("admin_token");
-    if (!storedToken) {
-      router.push("/");
-      return;
-    }
-    setTimeout(() => {
-      setToken(storedToken);
-    }, 0);
-  }, [router]);
-
-  useEffect(() => {
-    if (token) {
-      fetchReviews();
-    }
-  }, [token, fetchReviews]);
+    fetchReviews();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const closeModal = () => {
     setActiveModal(null);
@@ -76,10 +53,7 @@ export default function ReviewsPage() {
     setModalFeedback(null);
     try {
       await createReview(newRevUniId, newRevReviewerId, newRevRating, newRevComment);
-      setNewRevUniId("");
-      setNewRevReviewerId("");
-      setNewRevRating(5);
-      setNewRevComment("");
+      setNewRevUniId(""); setNewRevReviewerId(""); setNewRevRating(5); setNewRevComment("");
       closeModal();
     } catch (err: unknown) {
       setModalFeedback(err instanceof Error ? err.message : "Thao tác thất bại.");
@@ -113,32 +87,28 @@ export default function ReviewsPage() {
   };
 
   const handleToggleReviewApproval = async (id: string, currentStatus: boolean) => {
-    try {
-      await toggleReviewApproval(id, currentStatus);
-    } catch {
-      window.alert("Không thể cập nhật trạng thái.");
-    }
+    try { await toggleReviewApproval(id, currentStatus); }
+    catch { window.alert("Không thể cập nhật trạng thái."); }
   };
 
   const handleDeleteReview = async (id: string) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa bài đánh giá này?")) return;
-    try {
-      await deleteReview(id);
-    } catch {
-      window.alert("Không thể xóa bài đánh giá.");
-    }
+    try { await deleteReview(id); }
+    catch { window.alert("Không thể xóa bài đánh giá."); }
   };
 
   return (
-    <DashboardSetup>
+    <>
       <ReviewsTab
         reviews={reviews}
+        isLoading={isLoading}
+        error={error}
+        onRetry={fetchReviews}
         handleToggleReviewApproval={handleToggleReviewApproval}
         openEditReview={openEditReview}
         handleDeleteReview={handleDeleteReview}
         setActiveModal={(modal: "create-review" | null) => setActiveModal(modal)}
       />
-
       <CreateReviewModal
         isOpen={activeModal === "create-review"}
         closeModal={closeModal}
@@ -153,7 +123,6 @@ export default function ReviewsPage() {
         setNewRevComment={setNewRevComment}
         onSubmit={handleCreateReviewSubmit}
       />
-
       <EditReviewModal
         isOpen={activeModal === "edit-review"}
         closeModal={closeModal}
@@ -168,6 +137,14 @@ export default function ReviewsPage() {
         setEditRevIsApproved={setEditRevIsApproved}
         onSubmit={handleEditReviewSubmit}
       />
+    </>
+  );
+}
+
+export default function ReviewsPage() {
+  return (
+    <DashboardSetup>
+      <ReviewsInner />
     </DashboardSetup>
   );
 }

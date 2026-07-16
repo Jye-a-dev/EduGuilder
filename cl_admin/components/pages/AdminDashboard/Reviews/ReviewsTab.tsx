@@ -7,6 +7,9 @@ type ApprovalFilter = "all" | "approved" | "pending";
 
 interface ReviewsTabProps {
   reviews: UniversityReview[];
+  isLoading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
   handleToggleReviewApproval: (id: string, currentStatus: boolean) => void;
   openEditReview: (r: UniversityReview) => void;
   handleDeleteReview: (id: string) => void;
@@ -15,6 +18,9 @@ interface ReviewsTabProps {
 
 export default function ReviewsTab({
   reviews,
+  isLoading = false,
+  error = null,
+  onRetry,
   handleToggleReviewApproval,
   openEditReview,
   handleDeleteReview,
@@ -133,7 +139,29 @@ export default function ReviewsTab({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-900/50 text-xs">
-            {filtered.length === 0 ? (
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="animate-pulse">
+                  {Array.from({ length: 6 }).map((__, j) => (
+                    <td key={j} className="p-4"><div className="h-3 bg-gray-800 rounded w-3/4" /></td>
+                  ))}
+                </tr>
+              ))
+            ) : error ? (
+              <tr>
+                <td colSpan={6} className="p-10 text-center">
+                  <div className="inline-flex flex-col items-center gap-3">
+                    <i className="fa-solid fa-triangle-exclamation text-cyber-alert text-2xl" />
+                    <p className="text-cyber-alert font-mono text-xs">{error}</p>
+                    {onRetry && (
+                      <button onClick={onRetry} className="px-4 py-1.5 rounded-lg border border-cyber-primary/40 text-cyber-cyan text-xs font-bold hover:bg-cyber-primary/10 transition-all">
+                        <i className="fa-solid fa-rotate-right mr-1.5" /> Thử lại
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={6} className="p-8 text-center text-gray-500 font-mono">
                   {search || approvalFilter !== "all" || minRating > 1

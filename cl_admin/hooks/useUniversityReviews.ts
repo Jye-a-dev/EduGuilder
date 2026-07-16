@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { apiClient } from "@/libs/apiClient";
 import type { UniversityReview } from "@/components/pages/AdminDashboard/types";
+
+interface ReviewsPage {
+  data: UniversityReview[];
+  total: number;
+}
 
 export function useUniversityReviews(token: string | null) {
   const [reviews, setReviews] = useState<UniversityReview[]>([]);
@@ -14,42 +20,33 @@ export function useUniversityReviews(token: string | null) {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:3000/university_reviews", {
-        headers: { Authorization: `Bearer ${token}` },
+      const json = await apiClient.get<ReviewsPage>("/university_reviews", {
+        token,
+        params: { limit: 100 },
       });
-      if (!res.ok) throw new Error("Không thể tải danh sách reviews.");
-      const json = await res.json();
       const list = json.data || [];
       setReviews(list);
       setPendingReviewsCount(list.filter((x: UniversityReview) => !x.is_approved).length);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Có lỗi xảy ra.");
+      setError(err instanceof Error ? err.message : "Không thể tải danh sách reviews.");
     } finally {
       setIsLoading(false);
     }
   }, [token]);
 
-  const createReview = async (universityId: string, reviewerId: string, ratingStars: number, comment: string) => {
+  const createReview = async (
+    universityId: string,
+    reviewerId: string,
+    ratingStars: number,
+    comment: string
+  ) => {
     if (!token) return;
     setError(null);
-    const res = await fetch("http://localhost:3000/university_reviews", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        university_id: universityId,
-        reviewer_id: reviewerId,
-        rating_stars: ratingStars,
-        comment,
-        is_approved: true,
-      }),
-    });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.message || "Lỗi khi tạo đánh giá.");
-    }
+    await apiClient.post(
+      "/university_reviews",
+      { university_id: universityId, reviewer_id: reviewerId, rating_stars: ratingStars, comment, is_approved: true },
+      { token }
+    );
     await fetchReviews();
   };
 
@@ -59,44 +56,24 @@ export function useUniversityReviews(token: string | null) {
   ) => {
     if (!token) return;
     setError(null);
-    const res = await fetch(`http://localhost:3000/university_reviews/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.message || "Lỗi khi cập nhật đánh giá.");
-    }
+    await apiClient.patch(`/university_reviews/${id}`, body, { token });
     await fetchReviews();
   };
 
   const toggleReviewApproval = async (id: string, currentStatus: boolean) => {
     if (!token) return;
     setError(null);
-    const res = await fetch(`http://localhost:3000/university_reviews/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ is_approved: !currentStatus }),
-    });
-    if (!res.ok) throw new Error("Không thể cập nhật trạng thái review.");
+    await apiClient.patch(`/university_reviews/${id}`, { is_approved: !currentStatus }, { token });
     await fetchReviews();
   };
 
   const deleteReview = async (id: string) => {
     if (!token) return;
     setError(null);
-    const res = await fetch(`http://localhost:3000/university_reviews/${id}?hardDelete=true`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
+    await apiClient.delete(`/university_reviews/${id}`, {
+      token,
+      params: { hardDelete: true },
     });
-    if (!res.ok) throw new Error("Không thể xóa đánh giá.");
     await fetchReviews();
   };
 

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, type FormEvent } from "react";
 
 // Layout
 import DashboardSetup from "@/components/layouts/(dashboard)/DashboardSetup";
+import { useDashboard } from "@/components/layouts/(dashboard)/DashboardContext";
 
 // Custom API Hooks
 import { useUniversities } from "@/hooks/useUniversities";
@@ -17,17 +17,16 @@ import EditUniversityModal from "./Modals/EditUniversityModal";
 // Types
 import type { University, ModalType } from "../types";
 
-export default function UniversitiesPage() {
-  const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
+function UniversitiesInner() {
+  const { token } = useDashboard();
 
-  // Active Modals & Selected Edit Target
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [modalFeedback, setModalFeedback] = useState<string | null>(null);
 
-  // Bind Hook
   const {
     universities,
+    isLoading,
+    error,
     fetchUniversities,
     createUniversity,
     updateUniversity,
@@ -35,7 +34,6 @@ export default function UniversitiesPage() {
     deleteUniversity,
   } = useUniversities(token);
 
-  // --- FORM STATES ---
   const [newUniCode, setNewUniCode] = useState("");
   const [newUniName, setNewUniName] = useState("");
   const [newUniTuition, setNewUniTuition] = useState("");
@@ -46,23 +44,10 @@ export default function UniversitiesPage() {
   const [editUniTuition, setEditUniTuition] = useState("");
   const [editUniVerified, setEditUniVerified] = useState(false);
 
-  // Authenticate user on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem("admin_token");
-    if (!storedToken) {
-      router.push("/");
-      return;
-    }
-    setTimeout(() => {
-      setToken(storedToken);
-    }, 0);
-  }, [router]);
-
-  useEffect(() => {
-    if (token) {
-      fetchUniversities();
-    }
-  }, [token, fetchUniversities]);
+    fetchUniversities();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const closeModal = () => {
     setActiveModal(null);
@@ -128,9 +113,12 @@ export default function UniversitiesPage() {
   };
 
   return (
-    <DashboardSetup>
+    <>
       <UniversitiesTab
         universities={universities}
+        isLoading={isLoading}
+        error={error}
+        onRetry={fetchUniversities}
         handleToggleUniversityVerification={handleToggleUniversityVerification}
         openEditUniversity={openEditUniversity}
         handleDeleteUniversity={handleDeleteUniversity}
@@ -164,6 +152,14 @@ export default function UniversitiesPage() {
         setEditUniVerified={setEditUniVerified}
         onSubmit={handleEditUniversitySubmit}
       />
+    </>
+  );
+}
+
+export default function UniversitiesPage() {
+  return (
+    <DashboardSetup>
+      <UniversitiesInner />
     </DashboardSetup>
   );
 }

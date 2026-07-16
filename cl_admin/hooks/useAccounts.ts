@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { apiClient } from "@/libs/apiClient";
 import type { Account } from "@/components/pages/AdminDashboard/types";
 
 interface UpdateAccountBody {
@@ -11,24 +12,49 @@ interface UpdateAccountBody {
   eco_points?: number;
 }
 
+interface AccountsPage {
+  data: Account[];
+  total: number;
+}
+
 export function useAccounts(token: string | null) {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /** Fetch ALL accounts by paginating through the server (max 100/page). */
   const fetchAccounts = useCallback(async () => {
     if (!token) return;
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:3000/users?limit=100&includeDeleted=true", {
-        headers: { Authorization: `Bearer ${token}` },
+      // First page to discover total
+      const first = await apiClient.get<AccountsPage>("/users", {
+        token,
+        params: { page: 1, limit: 100, includeDeleted: true },
       });
-      if (!res.ok) throw new Error("Không thể tải danh sách tài khoản.");
-      const json = await res.json();
-      setAccounts(json.data || []);
+
+      const total = first.total;
+      let all: Account[] = first.data;
+
+      // Fetch remaining pages in parallel if needed
+      if (total > 100) {
+        const pageCount = Math.ceil(total / 100);
+        const pageNums = Array.from({ length: pageCount - 1 }, (_, i) => i + 2);
+        const rest = await Promise.all(
+          pageNums.map((page) =>
+            apiClient.get<AccountsPage>("/users", {
+              token,
+              params: { page, limit: 100, includeDeleted: true },
+            })
+          )
+        );
+        all = [first.data, ...rest.map((r) => r.data)].flat();
+      }
+
+      setAccounts(all);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Có lỗi xảy ra.");
+      setError(err instanceof Error ? err.message : "Không thể tải danh sách tài khoản.");
     } finally {
       setIsLoading(false);
     }
@@ -41,65 +67,34 @@ export function useAccounts(token: string | null) {
     role: string
   ) => {
     if (!token) return;
-    const res = await fetch("http://localhost:3000/users", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ email, full_name: fullName, password, role }),
-    });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.message || "Lỗi khi tạo tài khoản.");
-    }
+    await apiClient.post("/users", { email, full_name: fullName, password, role }, { token });
     await fetchAccounts();
   };
 
   const updateAccount = async (id: string, body: UpdateAccountBody) => {
     if (!token) return;
-    const res = await fetch(`http://localhost:3000/users/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.message || "Lỗi khi cập nhật tài khoản.");
-    }
+    await apiClient.patch(`/users/${id}`, body, { token });
     await fetchAccounts();
   };
 
   const softDeleteAccount = async (id: string) => {
     if (!token) return;
-    const res = await fetch(`http://localhost:3000/users/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error("Không thể vô hiệu hóa tài khoản.");
+    await apiClient.delete(`/users/${id}`, { token });
     await fetchAccounts();
   };
 
   const hardDeleteAccount = async (id: string) => {
     if (!token) return;
-    const res = await fetch(`http://localhost:3000/users/${id}?hardDelete=true`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
+    await apiClient.delete(`/users/${id}`, {
+      token,
+      params: { hardDelete: true },
     });
-    if (!res.ok) throw new Error("Không thể xóa tài khoản.");
     await fetchAccounts();
   };
 
   const restoreAccount = async (id: string) => {
     if (!token) return;
-    const res = await fetch(`http://localhost:3000/users/${id}/restore`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error("Không thể khôi phục tài khoản.");
+    await apiClient.post(`/users/${id}/restore`, {}, { token });
     await fetchAccounts();
   };
 

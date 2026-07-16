@@ -1,45 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-
-// Layout
+import { useEffect } from "react";
 import DashboardSetup from "@/components/layouts/(dashboard)/DashboardSetup";
-
-// Custom API Hooks
+import { useDashboard } from "@/components/layouts/(dashboard)/DashboardContext";
 import { useAuditLogs } from "@/hooks/useAuditLogs";
-
-// Sub-components
 import AuditLogsTab from "./AuditLogsTab";
 
+function AuditLogsInner() {
+  const { token } = useDashboard();
+  const { auditLogs, isLoading, error, fetchAuditLogs } = useAuditLogs(token);
+
+  useEffect(() => {
+    fetchAuditLogs();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  return <AuditLogsTab auditLogs={auditLogs} isLoading={isLoading} error={error} onRetry={fetchAuditLogs} />;
+}
+
 export default function AuditLogsPage() {
-  const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
-
-  // Bind Hook
-  const { auditLogs, fetchAuditLogs } = useAuditLogs(token);
-
-  // Authenticate user on mount
-  useEffect(() => {
-    const storedToken = localStorage.getItem("admin_token");
-    if (!storedToken) {
-      router.push("/");
-      return;
-    }
-    setTimeout(() => {
-      setToken(storedToken);
-    }, 0);
-  }, [router]);
-
-  useEffect(() => {
-    if (token) {
-      fetchAuditLogs();
-    }
-  }, [token, fetchAuditLogs]);
-
   return (
     <DashboardSetup>
-      <AuditLogsTab auditLogs={auditLogs} />
+      <AuditLogsInner />
     </DashboardSetup>
   );
 }

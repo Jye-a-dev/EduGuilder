@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, type FormEvent } from "react";
 
 // Layout
 import DashboardSetup from "@/components/layouts/(dashboard)/DashboardSetup";
+import { useDashboard } from "@/components/layouts/(dashboard)/DashboardContext";
 
 // Custom API Hooks
 import { useAccounts } from "@/hooks/useAccounts";
@@ -17,15 +17,17 @@ import EditAccountModal from "./Modals/EditAccountModal";
 // Types
 import type { Account, ModalType, UserRole } from "../types";
 
-export default function AccountsPage() {
-  const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
+/** Inner component: has access to DashboardContext (token guaranteed). */
+function AccountsInner() {
+  const { token } = useDashboard();
 
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [modalFeedback, setModalFeedback] = useState<string | null>(null);
 
   const {
     accounts,
+    isLoading,
+    error,
     fetchAccounts,
     createAccount,
     updateAccount,
@@ -48,23 +50,11 @@ export default function AccountsPage() {
   const [editUniversityId, setEditUniversityId] = useState("");
   const [editCurrentGrade, setEditCurrentGrade] = useState("");
 
-  // Authenticate user on mount
+  // Fetch accounts once token is available from context
   useEffect(() => {
-    const storedToken = localStorage.getItem("admin_token");
-    if (!storedToken) {
-      router.push("/");
-      return;
-    }
-    setTimeout(() => {
-      setToken(storedToken);
-    }, 0);
-  }, [router]);
-
-  useEffect(() => {
-    if (token) {
-      fetchAccounts();
-    }
-  }, [token, fetchAccounts]);
+    fetchAccounts();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const closeModal = () => {
     setActiveModal(null);
@@ -145,9 +135,12 @@ export default function AccountsPage() {
   };
 
   return (
-    <DashboardSetup>
+    <>
       <AccountsTab
         accounts={accounts}
+        isLoading={isLoading}
+        error={error}
+        onRetry={fetchAccounts}
         openEditAccount={openEditAccount}
         handleSoftDeleteAccount={handleSoftDeleteAccount}
         handleHardDeleteAccount={handleHardDeleteAccount}
@@ -186,6 +179,14 @@ export default function AccountsPage() {
         setEditCurrentGrade={setEditCurrentGrade}
         onSubmit={handleEditSubmit}
       />
+    </>
+  );
+}
+
+export default function AccountsPage() {
+  return (
+    <DashboardSetup>
+      <AccountsInner />
     </DashboardSetup>
   );
 }

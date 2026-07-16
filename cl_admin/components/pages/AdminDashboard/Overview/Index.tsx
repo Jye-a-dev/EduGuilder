@@ -1,74 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-
-// Layout
 import DashboardSetup from "@/components/layouts/(dashboard)/DashboardSetup";
-
-// Custom API Hooks
+import { useDashboard } from "@/components/layouts/(dashboard)/DashboardContext";
 import { useUniversities } from "@/hooks/useUniversities";
 import { useStudentVerifications } from "@/hooks/useStudentVerifications";
 import { useUniversityReviews } from "@/hooks/useUniversityReviews";
-
-// Sub-components
 import DashboardTab from "./DashboardTab";
 
-export default function AdminDashboardPage() {
+function DashboardInner() {
+  const { token } = useDashboard();
   const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
 
-  // Bind Custom Hooks
-  const {
-    universities,
-    fetchUniversities,
-  } = useUniversities(token);
+  const { universities, fetchUniversities } = useUniversities(token);
+  const { pendingVerificationsCount, fetchVerifications } = useStudentVerifications(token);
+  const { pendingReviewsCount, fetchReviews } = useUniversityReviews(token);
 
-  const {
-    pendingVerificationsCount,
-    fetchVerifications,
-  } = useStudentVerifications(token);
-
-  const {
-    pendingReviewsCount,
-    fetchReviews,
-  } = useUniversityReviews(token);
-
-  // Authenticate user on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem("admin_token");
-    if (!storedToken) {
-      router.push("/");
-      return;
-    }
-    setTimeout(() => {
-      setToken(storedToken);
-    }, 0);
-  }, [router]);
+    Promise.all([fetchVerifications(), fetchReviews(), fetchUniversities()]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
-  // Load overview counts on mount or when token shifts
-  useEffect(() => {
-    if (!token) return;
-    Promise.all([
-      fetchVerifications(),
-      fetchReviews(),
-      fetchUniversities(),
-    ]);
-  }, [token, fetchVerifications, fetchReviews, fetchUniversities]);
-
-  const mockSetActiveTab = (path: "dashboard" | "verifications" | "reviews" | "universities" | "audit") => {
+  const setActiveTab = (path: "dashboard" | "verifications" | "reviews" | "universities" | "audit") => {
     if (path === "dashboard") router.push("/admin");
     else router.push(`/admin/${path}`);
   };
 
   return (
+    <DashboardTab
+      pendingVerificationsCount={pendingVerificationsCount}
+      pendingReviewsCount={pendingReviewsCount}
+      universitiesCount={universities.length}
+      setActiveTab={setActiveTab}
+    />
+  );
+}
+
+export default function AdminDashboardPage() {
+  return (
     <DashboardSetup>
-      <DashboardTab
-        pendingVerificationsCount={pendingVerificationsCount}
-        pendingReviewsCount={pendingReviewsCount}
-        universitiesCount={universities.length}
-        setActiveTab={mockSetActiveTab}
-      />
+      <DashboardInner />
     </DashboardSetup>
   );
 }

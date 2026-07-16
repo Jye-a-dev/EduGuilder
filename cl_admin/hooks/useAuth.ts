@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiClient } from "@/libs/apiClient";
 
 export type UserRole = "admin" | "uni" | "student";
 
@@ -26,20 +27,7 @@ export function useAuth() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://localhost:3000/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Đăng nhập thất bại");
-      }
-
-      const data: LoginResponse = await response.json();
+      const data = await apiClient.post<LoginResponse>("/auth/login", { email, password });
 
       // Check if the user has admin role
       if (data.user.role !== "admin") {

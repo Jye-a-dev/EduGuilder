@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { apiClient } from "@/libs/apiClient";
 import type { AuditLog } from "@/components/pages/AdminDashboard/types";
+
+interface AuditLogsPage {
+  data: AuditLog[];
+  total: number;
+}
 
 export function useAuditLogs(token: string | null) {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -13,14 +19,13 @@ export function useAuditLogs(token: string | null) {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:3000/audit_logs", {
-        headers: { Authorization: `Bearer ${token}` },
+      const json = await apiClient.get<AuditLogsPage>("/audit_logs", {
+        token,
+        params: { limit: 100 },
       });
-      if (!res.ok) throw new Error("Không thể tải audit logs.");
-      const json = await res.json();
       setAuditLogs(json.data || []);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Có lỗi xảy ra.");
+      setError(err instanceof Error ? err.message : "Không thể tải audit logs.");
     } finally {
       setIsLoading(false);
     }

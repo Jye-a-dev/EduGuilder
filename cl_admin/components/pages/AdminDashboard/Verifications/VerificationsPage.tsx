@@ -1,33 +1,24 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
-
-// Layout
+import { useState, useEffect, type FormEvent } from "react";
 import DashboardSetup from "@/components/layouts/(dashboard)/DashboardSetup";
-
-// Custom API Hooks
+import { useDashboard } from "@/components/layouts/(dashboard)/DashboardContext";
 import { useStudentVerifications } from "@/hooks/useStudentVerifications";
-
-// Sub-components
 import VerificationsTab from "./VerificationsTab";
 import CreateVerificationModal from "./Modals/CreateVerificationModal";
 import EditVerificationModal from "./Modals/EditVerificationModal";
-
-// Types
 import type { StudentVerification, ModalType, VerifyStatus } from "../types";
 
-export default function VerificationsPage() {
-  const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
+function VerificationsInner() {
+  const { token } = useDashboard();
 
-  // Active Modals & Selected Edit Target
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [modalFeedback, setModalFeedback] = useState<string | null>(null);
 
-  // Bind Hook
   const {
     verifications,
+    isLoading,
+    error,
     fetchVerifications,
     createVerification,
     updateVerification,
@@ -36,7 +27,6 @@ export default function VerificationsPage() {
     deleteVerification,
   } = useStudentVerifications(token);
 
-  // --- FORM STATES ---
   const [newVerStudentId, setNewVerStudentId] = useState("");
   const [newVerCardImageKey, setNewVerCardImageKey] = useState("");
 
@@ -46,23 +36,10 @@ export default function VerificationsPage() {
   const [editVerStatus, setEditVerStatus] = useState<VerifyStatus>("pending");
   const [editVerRejectReason, setEditVerRejectReason] = useState("");
 
-  // Authenticate user on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem("admin_token");
-    if (!storedToken) {
-      router.push("/");
-      return;
-    }
-    setTimeout(() => {
-      setToken(storedToken);
-    }, 0);
-  }, [router]);
-
-  useEffect(() => {
-    if (token) {
-      fetchVerifications();
-    }
-  }, [token, fetchVerifications]);
+    fetchVerifications();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const closeModal = () => {
     setActiveModal(null);
@@ -110,43 +87,36 @@ export default function VerificationsPage() {
   };
 
   const handleApproveVerification = async (id: string) => {
-    try {
-      await approveVerification(id);
-    } catch {
-      window.alert("Không thể duyệt yêu cầu.");
-    }
+    try { await approveVerification(id); }
+    catch { window.alert("Không thể duyệt yêu cầu."); }
   };
 
   const handleRejectVerification = async (id: string) => {
     const reason = window.prompt("Nhập lý do từ chối:");
     if (reason === null) return;
-    try {
-      await rejectVerification(id, reason);
-    } catch {
-      window.alert("Không thể từ chối yêu cầu.");
-    }
+    try { await rejectVerification(id, reason); }
+    catch { window.alert("Không thể từ chối yêu cầu."); }
   };
 
   const handleDeleteVerification = async (id: string) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa yêu cầu xác thực này?")) return;
-    try {
-      await deleteVerification(id);
-    } catch {
-      window.alert("Không thể xóa yêu cầu.");
-    }
+    try { await deleteVerification(id); }
+    catch { window.alert("Không thể xóa yêu cầu."); }
   };
 
   return (
-    <DashboardSetup>
+    <>
       <VerificationsTab
         verifications={verifications}
+        isLoading={isLoading}
+        error={error}
+        onRetry={fetchVerifications}
         handleApproveVerification={handleApproveVerification}
         handleRejectVerification={handleRejectVerification}
         openEditVerification={openEditVerification}
         handleDeleteVerification={handleDeleteVerification}
         setActiveModal={(modal: "create-verification" | null) => setActiveModal(modal)}
       />
-
       <CreateVerificationModal
         isOpen={activeModal === "create-verification"}
         closeModal={closeModal}
@@ -157,7 +127,6 @@ export default function VerificationsPage() {
         setNewVerCardImageKey={setNewVerCardImageKey}
         onSubmit={handleCreateVerificationSubmit}
       />
-
       <EditVerificationModal
         isOpen={activeModal === "edit-verification"}
         closeModal={closeModal}
@@ -172,6 +141,14 @@ export default function VerificationsPage() {
         setEditVerRejectReason={setEditVerRejectReason}
         onSubmit={handleEditVerificationSubmit}
       />
+    </>
+  );
+}
+
+export default function VerificationsPage() {
+  return (
+    <DashboardSetup>
+      <VerificationsInner />
     </DashboardSetup>
   );
 }

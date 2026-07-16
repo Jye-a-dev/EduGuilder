@@ -16,11 +16,14 @@ export default function PublicNavbar() {
       const timeoutId = setTimeout(() => controller.abort(), 3000);
 
       try {
-        const response = await fetch("http://localhost:3000/", {
-          method: "GET",
-          cache: "no-store",
-          signal: controller.signal,
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"}/`,
+          {
+            method: "GET",
+            cache: "no-store",
+            signal: controller.signal,
+          }
+        );
         clearTimeout(timeoutId);
 
         const duration = Math.round(performance.now() - startTime);

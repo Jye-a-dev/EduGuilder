@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 // Layout components
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import LoadingScreen from "./LoadingScreen";
+import PageTransition from "./PageTransition";
+import { DashboardContext } from "./DashboardContext";
 
 // Custom API Hooks
 import { useStudentVerifications } from "@/hooks/useStudentVerifications";
@@ -89,28 +92,26 @@ export default function DashboardSetup({ children }: DashboardSetupProps) {
   };
 
   if (!currentUser) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-cyber-bg text-gray-400 font-mono text-sm">
-        <i className="fa-solid fa-spinner animate-spin mr-2" /> Đang xác minh quyền điều hành...
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row bg-cyber-bg text-gray-100 font-sans antialiased overflow-hidden">
-      <Sidebar
-        currentUser={currentUser}
-        pendingVerificationsCount={pendingVerificationsCount}
-        pendingReviewsCount={pendingReviewsCount}
-        isDbOnline={isDbOnline}
-        handleLogout={handleLogout}
-      />
-      <div className="grow flex flex-col h-screen overflow-hidden relative">
-        <Header universitiesCount={universities.length} />
-        <main className="grow p-6 sm:p-8 overflow-y-auto custom-scrollbar bg-cyber-bg">
-          {children}
-        </main>
+    <DashboardContext.Provider value={{ token: token!, currentUser: currentUser!, handleLogout }}>
+      <div className="flex min-h-screen flex-col md:flex-row bg-cyber-bg text-gray-100 font-sans antialiased overflow-hidden">
+        <Sidebar
+          currentUser={currentUser}
+          pendingVerificationsCount={pendingVerificationsCount}
+          pendingReviewsCount={pendingReviewsCount}
+          isDbOnline={isDbOnline}
+          handleLogout={handleLogout}
+        />
+        <div className="grow flex flex-col h-screen overflow-hidden relative">
+          <Header universitiesCount={universities.length} />
+          <main className="grow p-6 sm:p-8 overflow-y-auto custom-scrollbar bg-cyber-bg">
+            <PageTransition>{children}</PageTransition>
+          </main>
+        </div>
       </div>
-    </div>
+    </DashboardContext.Provider>
   );
 }
