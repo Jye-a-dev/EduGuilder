@@ -1,8 +1,12 @@
-import Link from "next/link";
+"use client";
 
+import Link from "next/link";
 import BaseNavbar from "@/components/layouts/@base/Navbar/BaseNavbar";
+import { useAuthContext } from "@/components/providers/AuthProvider";
 
 export default function PublicNavbar() {
+  const { user, logout } = useAuthContext();
+
   return (
     <BaseNavbar
       brand={
@@ -17,18 +21,44 @@ export default function PublicNavbar() {
       }
       action={
         <div className="flex items-center gap-4">
-          <a
-            href="#pricing"
-            className="hidden sm:inline-flex text-sm font-bold text-gray-300 hover:text-white transition-colors"
-          >
-            Khám phá
-          </a>
-          <a
-            href="#"
-            className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-linear-to-r from-brand-primary via-brand-accent to-brand-secondary text-sm font-bold text-white hover:opacity-90 shadow-lg shadow-brand-primary/30 transition-all transform hover:-translate-y-0.5 active:scale-95"
-          >
-            Trải nghiệm ngay
-          </a>
+          {user ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="hidden sm:inline-flex text-sm font-bold text-gray-300 hover:text-white transition-colors"
+              >
+                Xin chào, {user.full_name.split(" ").pop()}
+              </Link>
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-linear-to-r from-brand-primary to-brand-secondary text-sm font-bold text-white hover:opacity-90 shadow-lg shadow-brand-primary/30 transition-all transform hover:-translate-y-0.5 active:scale-95"
+              >
+                Dashboard <i className="fa-solid fa-gauge ml-1.5 text-xs" />
+              </Link>
+              <button
+                onClick={logout}
+                title="Đăng xuất"
+                className="text-gray-500 hover:text-red-400 p-2 transition-colors cursor-pointer"
+              >
+                <i className="fa-solid fa-right-from-bracket text-base" />
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex text-sm font-bold text-gray-300 hover:text-white transition-colors"
+              >
+                Đăng nhập
+              </Link>
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-linear-to-r from-brand-primary via-brand-accent to-brand-secondary text-sm font-bold text-white hover:opacity-90 shadow-lg shadow-brand-primary/30 transition-all transform hover:-translate-y-0.5 active:scale-95"
+              >
+                Trải nghiệm ngay
+              </Link>
+            </>
+          )}
         </div>
       }
     >

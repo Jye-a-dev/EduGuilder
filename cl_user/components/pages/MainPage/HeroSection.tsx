@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function HeroSection() {
   return (
     <>
@@ -20,9 +22,9 @@ export default function HeroSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-24">
-            <a href="#" className="w-full sm:w-auto px-10 py-5 rounded-xl bg-linear-to-r from-brand-primary via-brand-accent to-brand-secondary font-extrabold text-white shadow-xl shadow-brand-primary/20 hover:scale-105 transition-all text-center">
+            <Link href="/register" className="w-full sm:w-auto px-10 py-5 rounded-xl bg-linear-to-r from-brand-primary via-brand-accent to-brand-secondary font-extrabold text-white shadow-xl shadow-brand-primary/20 hover:scale-105 transition-all text-center">
               Bắt đầu miễn phí
-            </a>
+            </Link>
             <a href="#features" className="w-full sm:w-auto px-10 py-5 rounded-xl bg-brand-card/60 border border-gray-800 font-extrabold text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-700 transition-all flex items-center justify-center gap-3 backdrop-blur-sm">
               <i className="fa-solid fa-play text-xs text-brand-secondary"></i> Xem cách hoạt động
             </a>
@@ -72,9 +74,9 @@ export default function HeroSection() {
                   <a href="#" className="w-full py-3.5 px-4 rounded-xl bg-white hover:bg-gray-100 text-gray-950 font-extrabold text-sm flex items-center justify-center gap-3 transition-all transform active:scale-95 shadow-lg shadow-white/5">
                     <i className="fa-brands fa-google text-base"></i> Đăng nhập bằng Google
                   </a>
-                  <a href="#" className="w-full py-3.5 px-4 rounded-xl bg-gray-800/80 hover:bg-gray-800 text-gray-200 font-bold text-sm flex items-center justify-center gap-2 transition-all border border-gray-700">
-                    Sử dụng Email học sinh <i className="fa-solid fa-arrow-right text-xs ml-1 text-brand-secondary"></i>
-                  </a>
+                  <Link href="/login" className="w-full py-3.5 px-4 rounded-xl bg-gray-800/80 hover:bg-gray-800 text-gray-200 font-bold text-sm flex items-center justify-center gap-2 transition-all border border-gray-700">
+                    Đăng nhập tài khoản <i className="fa-solid fa-arrow-right text-xs ml-1 text-brand-secondary"></i>
+                  </Link>
                 </div>
 
                 <div className="text-center pt-2">
