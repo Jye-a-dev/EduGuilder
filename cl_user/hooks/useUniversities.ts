@@ -8,7 +8,7 @@ export interface University {
   code: string;
   name: string;
   region: string;
-  tuition_fee?: string;
+  tuition_fees?: string;
   is_verified: boolean;
 }
 

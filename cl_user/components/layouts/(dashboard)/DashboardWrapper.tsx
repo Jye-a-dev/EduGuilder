@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthContext } from "@/components/providers/AuthProvider";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -14,9 +14,19 @@ interface DashboardWrapperProps {
 export default function DashboardWrapper({ children }: DashboardWrapperProps) {
   const { user, logout, token } = useAuthContext();
   const pathname = usePathname();
+  const params = useParams();
+  const router = useRouter();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [prevPathname, setPrevPathname] = useState(pathname);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  // Validate parameter role matches authenticated user role
+  useEffect(() => {
+    if (user && params.role && params.role !== user.role) {
+      router.replace(`/${user.role}/dashboard`);
+    }
+  }, [user, params.role, router]);
 
   // Close sidebar on path change (mobile) during render to prevent cascading renders in useEffect
   if (pathname !== prevPathname) {
@@ -34,7 +44,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
   const { universities, fetchUniversities } = useUniversities(token);
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  
+
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -59,14 +69,16 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const navLinks = [
-    { href: "/dashboard", label: "Tổng quan", icon: "fa-solid fa-compass" },
-    { href: "/knowledge", label: "Đồ thị tri thức", icon: "fa-solid fa-circle-nodes" },
-    { href: "/universities", label: "Trường Đại học", icon: "fa-solid fa-building-columns" },
-    { href: "/exports", label: "Tài liệu đã xuất", icon: "fa-solid fa-file-export" },
-    { href: "/profile", label: "Hồ sơ xét tuyển", icon: "fa-solid fa-id-card-clip" },
-    { href: "/settings", label: "Cài đặt hệ thống", icon: "fa-solid fa-gears" },
-  ];
+  const navLinks = user
+    ? [
+      { href: `/${user.role}/dashboard`, label: "Tổng quan", icon: "fa-solid fa-compass" },
+      { href: `/${user.role}/knowledge`, label: "Đồ thị tri thức", icon: "fa-solid fa-circle-nodes" },
+      { href: `/${user.role}/universities`, label: "Trường Đại học", icon: "fa-solid fa-building-columns" },
+      { href: `/${user.role}/exports`, label: "Tài liệu đã xuất", icon: "fa-solid fa-file-export" },
+      { href: `/${user.role}/profile`, label: "Hồ sơ cá nhân", icon: "fa-solid fa-id-card-clip" },
+      { href: `/${user.role}/settings`, label: "Cài đặt hệ thống", icon: "fa-solid fa-gears" },
+    ]
+    : [];
 
   if (!user) return null;
 
@@ -81,8 +93,8 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
 
   // Find user's associated university name
   const userUni = universities.find((u) => u.id === user.university_id);
-  const uniName = userUni 
-    ? userUni.name 
+  const uniName = userUni
+    ? userUni.name
     : (user.role === "student" ? `Học sinh Lớp ${user.current_grade || "12"}` : "Đại diện Trường");
 
   return (
@@ -93,7 +105,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
 
       {/* Overlay for mobile sidebar */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs md:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -131,8 +143,8 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                       href={link.href}
                       className={`
                         group flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200
-                        ${isActive 
-                          ? "bg-brand-primary/10 text-brand-primary shadow-xs" 
+                        ${isActive
+                          ? "bg-brand-primary/10 text-brand-primary shadow-xs"
                           : "text-text-sub hover:text-text-main hover:bg-gray-100/50 dark:hover:bg-gray-800/40"
                         }
                       `}
@@ -220,7 +232,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                   <div className="flex items-center justify-between border-b border-border-custom pb-2">
                     <span className="text-xs font-bold text-text-main uppercase tracking-wider font-mono">Thông báo gần đây</span>
                     {unreadCount > 0 && (
-                      <button 
+                      <button
                         onClick={() => user && markAllAsRead(user.id)}
                         className="text-[10px] font-medium text-brand-primary hover:underline"
                       >
@@ -235,8 +247,8 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                       </div>
                     ) : (
                       notifications.map(notif => (
-                        <div 
-                          key={notif.id} 
+                        <div
+                          key={notif.id}
                           onClick={() => !notif.is_read && markAsRead(notif.id)}
                           className={`
                             p-2.5 rounded-xl border transition-colors flex gap-2.5 cursor-pointer
@@ -274,7 +286,7 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
 
             {/* Profile Dropdown */}
             <div className="relative" ref={profileRef}>
-              <div 
+              <div
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center gap-3 cursor-pointer group"
               >
@@ -301,13 +313,13 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                     <span className="block text-[9px] font-mono text-text-sub uppercase">Đang đăng nhập</span>
                     <span className="block text-xs font-bold text-text-main truncate">{user.email}</span>
                   </div>
-                  <Link 
-                    href="/profile" 
+                  <Link
+                    href={`/${user.role}/profile`}
                     className="flex items-center gap-2.5 px-3 py-2 text-xs rounded-lg text-text-sub hover:text-text-main hover:bg-gray-100/50 dark:hover:bg-gray-800/40 transition-colors"
                   >
                     <i className="fa-regular fa-user text-sm" /> Thiết lập tài khoản
                   </Link>
-                  <button 
+                  <button
                     onClick={logout}
                     className="w-full flex items-center gap-2.5 px-3 py-2 text-xs rounded-lg text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-colors text-left"
                   >

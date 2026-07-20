@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import PublicSetup from "@/components/layouts/(public)/PublicSetup";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 import "../globals.css";
 
@@ -17,7 +18,7 @@ type PublicLayoutProps = {
 
 export default function PublicLayout({ children }: PublicLayoutProps) {
   return (
-    <html lang="vi" className="scroll-smooth">
+    <html lang="vi" className="scroll-smooth" suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
@@ -26,12 +27,14 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
           referrerPolicy="no-referrer"
         />
       </head>
-      <body className="min-h-screen bg-brand-dark text-gray-150 font-sans antialiased overflow-x-hidden">
-        <AuthProvider>
-          <div className="mx-auto flex min-h-screen w-full max-w-350 flex-col border-x border-gray-950 bg-brand-dark">
-            <PublicSetup>{children}</PublicSetup>
-          </div>
-        </AuthProvider>
+      <body className="min-h-screen bg-brand-dark text-text-main font-sans antialiased overflow-x-hidden">
+        <ThemeProvider>
+          <AuthProvider>
+            <div className="mx-auto flex min-h-screen w-full max-w-350 flex-col border-x border-(--border-subtle) bg-brand-dark">
+              <PublicSetup>{children}</PublicSetup>
+            </div>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

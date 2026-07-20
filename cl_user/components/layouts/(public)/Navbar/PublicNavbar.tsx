@@ -3,9 +3,11 @@
 import Link from "next/link";
 import BaseNavbar from "@/components/layouts/@base/Navbar/BaseNavbar";
 import { useAuthContext } from "@/components/providers/AuthProvider";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 export default function PublicNavbar() {
   const { user, logout } = useAuthContext();
+  const { theme, toggle } = useTheme();
 
   return (
     <BaseNavbar
@@ -14,18 +16,32 @@ export default function PublicNavbar() {
           <div className="w-11 h-11 rounded-xl bg-linear-to-tr from-brand-primary via-brand-accent to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/30 group-hover:rotate-185 transition-all duration-500">
             <i className="fa-solid fa-orbit text-white text-xl animate-spin" style={{ animationDuration: "15s" }}></i>
           </div>
-          <span className="text-2xl font-black tracking-wider bg-clip-text text-transparent bg-linear-to-r from-white via-gray-200 to-gray-400">
+          <span className="text-2xl font-black tracking-wider bg-clip-text text-transparent bg-linear-to-r from-brand-primary via-brand-accent to-brand-secondary">
             EduPath
           </span>
         </Link>
       }
       action={
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* Theme toggle */}
+          <button
+            onClick={toggle}
+            title={theme === "dark" ? "Chuyển sang Light mode" : "Chuyển sang Dark mode"}
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-(--body-muted) hover:text-(--heading) hover:bg-(--btn-ghost-bg) transition-all cursor-pointer"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? (
+              <i className="fa-solid fa-sun text-base" />
+            ) : (
+              <i className="fa-solid fa-moon text-base" />
+            )}
+          </button>
+
           {user ? (
             <>
               <Link
                 href="/dashboard"
-                className="hidden sm:inline-flex text-sm font-bold text-gray-300 hover:text-white transition-colors"
+                className="hidden sm:inline-flex text-sm font-bold text-(--nav-link) hover:text-(--nav-link-hover) transition-colors"
               >
                 Xin chào, {user.full_name.split(" ").pop()}
               </Link>
@@ -38,7 +54,7 @@ export default function PublicNavbar() {
               <button
                 onClick={logout}
                 title="Đăng xuất"
-                className="text-gray-500 hover:text-red-400 p-2 transition-colors cursor-pointer"
+                className="text-(--body-muted) hover:text-red-400 p-2 transition-colors cursor-pointer"
               >
                 <i className="fa-solid fa-right-from-bracket text-base" />
               </button>
@@ -47,7 +63,7 @@ export default function PublicNavbar() {
             <>
               <Link
                 href="/login"
-                className="hidden sm:inline-flex text-sm font-bold text-gray-300 hover:text-white transition-colors"
+                className="hidden sm:inline-flex text-sm font-bold text-(--nav-link) hover:text-(--nav-link-hover) transition-colors"
               >
                 Đăng nhập
               </Link>
@@ -62,7 +78,7 @@ export default function PublicNavbar() {
         </div>
       }
     >
-      <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-400">
+      <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-(--nav-link)">
         <a
           href="#features"
           className="hover:text-brand-secondary transition-colors relative after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-brand-secondary hover:after:w-full after:transition-all"

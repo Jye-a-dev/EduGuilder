@@ -19,7 +19,14 @@ import GradeCrudModal from "./GradeCrudModal";
 export default function ProfilePage() {
   const { user, token, login } = useAuthContext();
 
-  const { universities, fetchUniversities, singleUniversity, fetchUniversityById } = useUniversities(token);
+  const {
+    universities,
+    fetchUniversities,
+    singleUniversity,
+    fetchUniversityById,
+    updateUniversity,
+    isLoading: isUniLoading
+  } = useUniversities(token);
   const { grades, fetchGrades, createGrade, updateGrade, deleteGrade } = useStudentGrades(token);
   const { verification, fetchVerification, createVerification } = useStudentVerifications(token);
 
@@ -181,6 +188,16 @@ export default function ProfilePage() {
     }
   };
 
+  const handleInlineUpdate = async (payload: { full_name?: string; password?: string }) => {
+    try {
+      const updatedUser = await apiClient.patch<User>(`/users/${user.id}`, payload, { token });
+      login(token, updatedUser);
+      return updatedUser;
+    } catch (err: unknown) {
+      throw new Error(err instanceof Error ? err.message : "Cập nhật thất bại.");
+    }
+  };
+
   const gpa = grades.length > 0
     ? (grades.reduce((sum, g) => sum + g.score, 0) / grades.length).toFixed(2)
     : "Chưa có dữ liệu";
@@ -189,12 +206,15 @@ export default function ProfilePage() {
     <div className="space-y-8 max-w-6xl mx-auto pb-12 relative">
       <div>
         <h1 className="text-3xl font-black text-text-main tracking-tight font-sans uppercase">Hồ Sơ Cá Nhân 👤</h1>
-        <p className="text-xs text-text-sub font-light mt-1">Cập nhật hồ sơ xét tuyển, tiến trình học bạ và cấu hình tài khoản.</p>
+        <p className="text-xs text-text-sub font-light mt-1">
+          {user.role === "uni"
+            ? "Thông tin tài khoản và trường đại học liên kết."
+            : "Cập nhật hồ sơ cá nhân và cấu hình thông tin tài khoản."}
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column */}
-        <div className="space-y-6 lg:col-span-1">
+      {user.role === "uni" ? (
+        <div className="max-w-md mx-auto">
           <ProfileIdentityCard
             user={user}
             gpa={gpa}
@@ -202,52 +222,64 @@ export default function ProfilePage() {
               setNewEmail(user.email);
               setIsEmailModalOpen(true);
             }}
+            university={singleUniversity}
+            onUpdateUser={handleInlineUpdate}
           />
-
-          {user.role === "student" && (
-            <StudentVerificationCard
-              verification={verification}
-              verifyCardKey={verifyCardKey}
-              setVerifyCardKey={setVerifyCardKey}
-              verifyFeedback={verifyFeedback}
-              isRequestingVerify={isRequestingVerify}
-              onSubmit={handleVerificationSubmit}
-            />
-          )}
         </div>
-
-        {/* Right Column */}
-        <div className="space-y-6 lg:col-span-2">
-          <AccountSettingsForm
-            user={user}
-            fullName={fullName}
-            setFullName={setFullName}
-            password={password}
-            setPassword={setPassword}
-            currentGrade={currentGrade}
-            setCurrentGrade={setCurrentGrade}
-            selectedUniId={selectedUniId}
-            setSelectedUniId={setSelectedUniId}
-            universities={universities}
-            accountFeedback={accountFeedback}
-            isUpdatingAccount={isUpdatingAccount}
-            onSubmit={handleAccountUpdate}
-          />
-
-          {user.role === "student" && (
-            <StudentGradesTable
-              grades={grades}
-              openAddGradeModal={openAddGradeModal}
-              openEditGradeModal={openEditGradeModal}
-              handleDeleteGrade={handleDeleteGrade}
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column */}
+          <div className="space-y-6 lg:col-span-1">
+            <ProfileIdentityCard
+              user={user}
+              gpa={gpa}
+              onOpenEmailModal={() => {
+                setNewEmail(user.email);
+                setIsEmailModalOpen(true);
+              }}
             />
-          )}
 
-          {user.role === "uni" && user.university_id && singleUniversity && (
-            <UniversityInfoPanel university={singleUniversity} />
-          )}
+            {user.role === "student" && (
+              <StudentVerificationCard
+                verification={verification}
+                verifyCardKey={verifyCardKey}
+                setVerifyCardKey={setVerifyCardKey}
+                verifyFeedback={verifyFeedback}
+                isRequestingVerify={isRequestingVerify}
+                onSubmit={handleVerificationSubmit}
+              />
+            )}
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6 lg:col-span-2">
+            <AccountSettingsForm
+              user={user}
+              fullName={fullName}
+              setFullName={setFullName}
+              password={password}
+              setPassword={setPassword}
+              currentGrade={currentGrade}
+              setCurrentGrade={setCurrentGrade}
+              selectedUniId={selectedUniId}
+              setSelectedUniId={setSelectedUniId}
+              universities={universities}
+              accountFeedback={accountFeedback}
+              isUpdatingAccount={isUpdatingAccount}
+              onSubmit={handleAccountUpdate}
+            />
+
+            {user.role === "student" && (
+              <StudentGradesTable
+                grades={grades}
+                openAddGradeModal={openAddGradeModal}
+                openEditGradeModal={openEditGradeModal}
+                handleDeleteGrade={handleDeleteGrade}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Modals */}
       <EmailChangeModal
