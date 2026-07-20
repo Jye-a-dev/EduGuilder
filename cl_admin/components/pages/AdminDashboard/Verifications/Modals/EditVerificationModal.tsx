@@ -1,7 +1,8 @@
 "use client";
 
 import type { FormEvent } from "react";
-import type { VerifyStatus } from "../../types";
+import type { VerifyStatus, Account } from "../../types";
+import { SearchableStudentDropdown } from "./SearchableStudentDropdown";
 
 interface EditVerificationModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface EditVerificationModalProps {
   editVerRejectReason: string;
   setEditVerRejectReason: (reason: string) => void;
   onSubmit: (e: FormEvent) => void;
+  students: Account[];
 }
 
 export default function EditVerificationModal({
@@ -31,6 +33,7 @@ export default function EditVerificationModal({
   editVerRejectReason,
   setEditVerRejectReason,
   onSubmit,
+  students,
 }: EditVerificationModalProps) {
   if (!isOpen) return null;
 
@@ -39,16 +42,14 @@ export default function EditVerificationModal({
       <div className="glow-border w-full max-w-md rounded-2xl border border-gray-800 bg-cyber-card p-6 shadow-2xl relative">
         <h3 className="text-sm font-bold text-white mb-4 uppercase font-mono">Sửa Yêu Cầu Xác Thực</h3>
         <form onSubmit={onSubmit} className="space-y-4">
-          <div>
+          <div className="relative z-50">
             <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">
-              Mã sinh viên (Student ID UUID)
+              Chọn sinh viên (Student Search)
             </label>
-            <input
-              type="text"
-              required
-              value={editVerStudentId}
-              onChange={(e) => setEditVerStudentId(e.target.value)}
-              className="w-full rounded-lg border border-gray-800 bg-cyber-bg px-3 py-2 text-xs font-mono text-white focus:border-cyber-primary focus:outline-none"
+            <SearchableStudentDropdown
+              students={students}
+              selectedStudentId={editVerStudentId}
+              onChange={setEditVerStudentId}
             />
           </div>
           <div>
@@ -103,7 +104,8 @@ export default function EditVerificationModal({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-linear-to-r from-cyber-primary to-cyber-cyan text-xs font-bold text-white"
+              disabled={!editVerStudentId}
+              className="px-4 py-2 rounded-lg bg-linear-to-r from-cyber-primary to-cyber-cyan text-xs font-bold text-white disabled:opacity-50"
             >
               Lưu thay đổi
             </button>

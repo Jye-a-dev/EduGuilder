@@ -8,6 +8,7 @@ import { useDashboard } from "@/components/layouts/(dashboard)/DashboardContext"
 
 // Custom API Hooks
 import { useAccounts } from "@/hooks/useAccounts";
+import { useUniversities } from "@/hooks/useUniversities";
 
 // Sub-components
 import AccountsTab from "./AccountsTab";
@@ -36,6 +37,8 @@ function AccountsInner() {
     restoreAccount,
   } = useAccounts(token);
 
+  const { universities, fetchUniversities } = useUniversities(token);
+
   // --- CREATE form state ---
   const [newEmail, setNewEmail] = useState("");
   const [newFullName, setNewFullName] = useState("");
@@ -50,9 +53,19 @@ function AccountsInner() {
   const [editUniversityId, setEditUniversityId] = useState("");
   const [editCurrentGrade, setEditCurrentGrade] = useState("");
 
+  // --- CONFIRMATION/ALERT MODAL state ---
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmModalConfig, setConfirmModalConfig] = useState<{
+    title: string;
+    message: string;
+    actionType: "soft-delete" | "hard-delete" | "restore" | "alert";
+    targetId?: string;
+  } | null>(null);
+
   // Fetch accounts once token is available from context
   useEffect(() => {
     fetchAccounts();
+    fetchUniversities();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -96,11 +109,8 @@ function AccountsInner() {
         full_name: editFullName,
         role: editRole,
         eco_points: editEcoPoints,
-        university_id: editRole === "uni" ? editUniversityId || null : null,
-        current_grade:
-          editRole === "student" && editCurrentGrade
-            ? Number(editCurrentGrade)
-            : null,
+        university_id: (editRole === "uni" || editRole === "student") && editUniversityId ? editUniversityId : null,
+        current_grade: editRole === "student" && editCurrentGrade ? parseInt(editCurrentGrade, 10) : null,
       });
       closeModal();
     } catch (err: unknown) {
@@ -108,29 +118,40 @@ function AccountsInner() {
     }
   };
 
-  const handleSoftDeleteAccount = async (id: string) => {
-    if (!window.confirm("Vô hiệu hóa tài khoản này? (Soft delete, có thể khôi phục)")) return;
-    try {
-      await softDeleteAccount(id);
-    } catch {
-      window.alert("Không thể vô hiệu hóa tài khoản.");
-    }
+  const openConfirmModal = (
+    title: string,
+    message: string,
+    actionType: "soft-delete" | "hard-delete" | "restore",
+    targetId: string
+  ) => {
+    setConfirmModalConfig({ title, message, actionType, targetId });
+    setConfirmModalOpen(true);
   };
 
-  const handleHardDeleteAccount = async (id: string) => {
-    if (!window.confirm("XÓA VĨNH VIỄN tài khoản này? Hành động không thể hoàn tác!")) return;
-    try {
-      await hardDeleteAccount(id);
-    } catch {
-      window.alert("Không thể xóa tài khoản.");
-    }
+  const closeConfirmModal = () => {
+    setConfirmModalOpen(false);
+    setConfirmModalConfig(null);
   };
 
-  const handleRestoreAccount = async (id: string) => {
+  const handleConfirmAction = async () => {
+    if (!confirmModalConfig?.targetId) return;
+    const { actionType, targetId } = confirmModalConfig;
     try {
-      await restoreAccount(id);
-    } catch {
-      window.alert("Không thể khôi phục tài khoản.");
+      if (actionType === "soft-delete") {
+        await softDeleteAccount(targetId);
+      } else if (actionType === "hard-delete") {
+        await hardDeleteAccount(targetId);
+      } else if (actionType === "restore") {
+        await restoreAccount(targetId);
+      }
+      closeConfirmModal();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Không thể thực hiện hành động.";
+      setConfirmModalConfig({
+        title: "Lỗi Hệ Thống",
+        message: msg,
+        actionType: "alert",
+      });
     }
   };
 
@@ -142,10 +163,31 @@ function AccountsInner() {
         error={error}
         onRetry={fetchAccounts}
         openEditAccount={openEditAccount}
-        handleSoftDeleteAccount={handleSoftDeleteAccount}
-        handleHardDeleteAccount={handleHardDeleteAccount}
-        handleRestoreAccount={handleRestoreAccount}
-        setActiveModal={(modal: "create-account" | null) => setActiveModal(modal)}
+        handleSoftDeleteAccount={(id) =>
+          openConfirmModal(
+            "Vô Hiệu Hóa Tài Khoản",
+            "Bạn có chắc chắn muốn vô hiệu hóa (soft delete) tài khoản này không? Người dùng sẽ không thể đăng nhập cho đến khi được khôi phục.",
+            "soft-delete",
+            id
+          )
+        }
+        handleHardDeleteAccount={(id) =>
+          openConfirmModal(
+            "Xóa Vĩnh Viễn Tài Khoản",
+            "CẢNH BÁO: Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản này? Hành động này không thể hoàn tác và sẽ xóa sạch dữ liệu liên quan.",
+            "hard-delete",
+            id
+          )
+        }
+        handleRestoreAccount={(id) =>
+          openConfirmModal(
+            "Khôi Phục Tài Khoản",
+            "Bạn có muốn khôi phục tài khoản này hoạt động bình thường không?",
+            "restore",
+            id
+          )
+        }
+        setActiveModal={(modal) => setActiveModal(modal)}
       />
 
       <CreateAccountModal
@@ -178,7 +220,54 @@ function AccountsInner() {
         editCurrentGrade={editCurrentGrade}
         setEditCurrentGrade={setEditCurrentGrade}
         onSubmit={handleEditSubmit}
+        universities={universities}
       />
+
+      {/* Reusable Confirmation Modal Overlay */}
+      {confirmModalOpen && confirmModalConfig && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4">
+          <div className="glow-border w-full max-w-sm rounded-2xl border border-gray-800 bg-cyber-card p-6 shadow-2xl relative">
+            <h3 className="text-sm font-bold text-white mb-2 uppercase font-mono tracking-wider">
+              {confirmModalConfig.title}
+            </h3>
+            <p className="text-xs text-gray-400 font-light leading-relaxed mb-6">
+              {confirmModalConfig.message}
+            </p>
+            <div className="flex justify-end gap-2.5">
+              {confirmModalConfig.actionType === "alert" ? (
+                <button
+                  type="button"
+                  onClick={closeConfirmModal}
+                  className="px-4 py-2 rounded-lg bg-cyber-primary text-xs font-bold text-white"
+                >
+                  Đóng
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={closeConfirmModal}
+                    className="px-4 py-2 rounded-lg bg-gray-900 border border-gray-800 text-xs font-bold text-gray-400 hover:text-white"
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmAction}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold text-white ${
+                      confirmModalConfig.actionType === "hard-delete"
+                        ? "bg-cyber-alert hover:opacity-90"
+                        : "bg-cyber-primary hover:opacity-90"
+                    }`}
+                  >
+                    Đồng ý
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

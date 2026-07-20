@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { StudentVerification, VerifyStatus } from "../types";
+import type { StudentVerification, VerifyStatus, Account } from "../types";
 
 type StatusFilter = "all" | VerifyStatus;
 
 interface VerificationsTabProps {
   verifications: StudentVerification[];
+  accounts: Account[];
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -19,6 +20,7 @@ interface VerificationsTabProps {
 
 export default function VerificationsTab({
   verifications,
+  accounts,
   isLoading = false,
   error = null,
   onRetry,
@@ -33,15 +35,20 @@ export default function VerificationsTab({
 
   const filtered = useMemo(() => {
     return verifications.filter((v) => {
+      const student = accounts.find((a) => a.id === v.student_id);
+      const studentName = student?.full_name || "";
+      const studentEmail = student?.email || "";
       const matchesSearch =
         search === "" ||
         v.student_id.toLowerCase().includes(search.toLowerCase()) ||
-        v.id.toLowerCase().includes(search.toLowerCase());
+        v.id.toLowerCase().includes(search.toLowerCase()) ||
+        studentName.toLowerCase().includes(search.toLowerCase()) ||
+        studentEmail.toLowerCase().includes(search.toLowerCase());
       const matchesStatus =
         statusFilter === "all" || v.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [verifications, search, statusFilter]);
+  }, [verifications, accounts, search, statusFilter]);
 
   const counts = useMemo(
     () => ({
@@ -64,7 +71,7 @@ export default function VerificationsTab({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm theo ID yêu cầu hoặc Mã sinh viên..."
+            placeholder="Tìm theo ID, mã, họ tên hoặc email sinh viên..."
             className="w-full bg-cyber-card/60 border border-gray-800 rounded-lg pl-8 pr-4 py-2 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-cyber-primary/60 transition-colors"
           />
         </div>
@@ -116,7 +123,7 @@ export default function VerificationsTab({
           <thead>
             <tr className="border-b border-gray-900 bg-cyber-card/80 font-mono text-[10px] font-bold uppercase tracking-wider text-gray-400">
               <th className="p-4">Mã Yêu Cầu</th>
-              <th className="p-4">Mã Sinh Viên</th>
+              <th className="p-4">Sinh Viên / Tài Khoản</th>
               <th className="p-4">Ảnh Thẻ</th>
               <th className="p-4">Trạng Thái</th>
               <th className="p-4">Lý do từ chối</th>
@@ -155,65 +162,88 @@ export default function VerificationsTab({
                 </td>
               </tr>
             ) : (
-              filtered.map((v) => (
-                <tr key={v.id} className="hover:bg-gray-800/20 transition-colors">
-                  <td className="p-4 font-mono text-[10px] text-gray-400 select-all">{v.id}</td>
-                  <td className="p-4 font-mono text-gray-200 select-all">{v.student_id}</td>
-                  <td className="p-4">
-                    <span className="text-cyber-cyan hover:underline cursor-pointer flex items-center gap-1">
-                      <i className="fa-solid fa-image" /> {v.card_image_key.split("/").pop()}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
-                        v.status === "approved"
-                          ? "bg-cyber-success/10 border-cyber-success/30 text-cyber-success"
-                          : v.status === "rejected"
-                          ? "bg-cyber-alert/10 border-cyber-alert/30 text-cyber-alert"
-                          : "bg-cyber-warning/10 border-cyber-warning/30 text-cyber-warning"
-                      }`}
-                    >
-                      {v.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-gray-450 italic max-w-xs truncate" title={v.reject_reason || ""}>
-                    {v.reject_reason || "-"}
-                  </td>
-                  <td className="p-4 text-right space-x-2">
-                    {v.status === "pending" && (
-                      <>
+              filtered.map((v) => {
+                const student = accounts.find((a) => a.id === v.student_id);
+                return (
+                  <tr key={v.id} className="hover:bg-gray-800/20 transition-colors">
+                    <td className="p-4 font-mono text-[10px] text-gray-400 select-all">{v.id}</td>
+                    <td className="p-4">
+                      {student ? (
+                        <div className="space-y-0.5">
+                          <div className="font-bold text-gray-200 flex items-center gap-1.5">
+                            <span>{student.full_name}</span>
+                            <span className="text-[8px] font-mono px-1.5 py-0.5 rounded-sm bg-gray-800 text-gray-400 border border-gray-700 uppercase">
+                              {student.role}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-gray-500 font-mono select-all">{student.email}</div>
+                          <div className="text-[9px] text-gray-600 font-mono select-all truncate max-w-40" title={v.student_id}>{v.student_id}</div>
+                        </div>
+                      ) : (
+                        <div className="space-y-0.5">
+                          <div className="font-bold text-cyber-alert">Tài khoản không tồn tại</div>
+                          <div className="text-[9px] text-gray-600 font-mono select-all">{v.student_id}</div>
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-4 font-mono">
+                      <span className="text-cyber-cyan hover:underline cursor-pointer flex items-center gap-1">
+                        <i className="fa-solid fa-image" /> {v.card_image_key.split("/").pop()}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
+                          v.status === "approved"
+                            ? "bg-cyber-success/10 border-cyber-success/30 text-cyber-success"
+                            : v.status === "rejected"
+                            ? "bg-cyber-alert/10 border-cyber-alert/30 text-cyber-alert"
+                            : "bg-cyber-warning/10 border-cyber-warning/30 text-cyber-warning"
+                        }`}
+                      >
+                        {v.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-gray-455 italic max-w-xs truncate" title={v.reject_reason || ""}>
+                      {v.reject_reason || "-"}
+                    </td>
+                    <td className="p-4 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {v.status === "pending" && (
+                          <>
+                            <button
+                              onClick={() => handleApproveVerification(v.id)}
+                              className="px-2 py-1 rounded bg-cyber-success/15 border border-cyber-success/30 text-cyber-success font-bold hover:bg-cyber-success/25 transition-all text-[10px]"
+                            >
+                              Duyệt
+                            </button>
+                            <button
+                              onClick={() => handleRejectVerification(v.id)}
+                              className="px-2 py-1 rounded bg-cyber-alert/15 border border-cyber-alert/30 text-cyber-alert font-bold hover:bg-cyber-alert/25 transition-all text-[10px]"
+                            >
+                              Từ chối
+                            </button>
+                          </>
+                        )}
                         <button
-                          onClick={() => handleApproveVerification(v.id)}
-                          className="px-2 py-1 rounded bg-cyber-success/15 border border-cyber-success/30 text-cyber-success font-bold hover:bg-cyber-success/25 transition-all"
+                          onClick={() => openEditVerification(v)}
+                          className="text-gray-500 hover:text-white transition-all p-1"
+                          title="Sửa thông tin"
                         >
-                          Duyệt
+                          <i className="fa-solid fa-pen" />
                         </button>
                         <button
-                          onClick={() => handleRejectVerification(v.id)}
-                          className="px-2 py-1 rounded bg-cyber-alert/15 border border-cyber-alert/30 text-cyber-alert font-bold hover:bg-cyber-alert/25 transition-all"
+                          onClick={() => handleDeleteVerification(v.id)}
+                          className="text-gray-500 hover:text-cyber-alert transition-all p-1"
+                          title="Xóa yêu cầu"
                         >
-                          Từ chối
+                          <i className="fa-solid fa-trash-can" />
                         </button>
-                      </>
-                    )}
-                    <button
-                      onClick={() => openEditVerification(v)}
-                      className="text-gray-500 hover:text-white transition-all p-1"
-                      title="Sửa thông tin"
-                    >
-                      <i className="fa-solid fa-pen" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteVerification(v.id)}
-                      className="text-gray-500 hover:text-cyber-alert transition-all p-1"
-                      title="Xóa yêu cầu"
-                    >
-                      <i className="fa-solid fa-trash-can" />
-                    </button>
-                  </td>
-                </tr>
-              ))
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -228,5 +258,3 @@ export default function VerificationsTab({
     </div>
   );
 }
-
-

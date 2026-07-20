@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import DashboardSetup from "@/components/layouts/(dashboard)/DashboardSetup";
+import DashboardWrapper from "@/components/layouts/(dashboard)/DashboardWrapper";
 
 import "../globals.css";
 
@@ -16,7 +17,7 @@ type DashboardLayoutProps = {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <html lang="vi" className="scroll-smooth">
+    <html lang="vi" className="scroll-smooth" suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
@@ -24,11 +25,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           crossOrigin="anonymous"
           referrerPolicy="no-referrer"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.getItem('theme') === 'dark') {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
       </head>
-      <body className="min-h-screen bg-brand-dark text-gray-100 font-sans antialiased overflow-x-hidden">
+      <body className="min-h-screen bg-brand-dark text-text-main font-sans antialiased overflow-x-hidden">
         <AuthProvider>
           <DashboardSetup>
-            {children}
+            <DashboardWrapper>{children}</DashboardWrapper>
           </DashboardSetup>
         </AuthProvider>
       </body>

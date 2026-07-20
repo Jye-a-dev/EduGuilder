@@ -1,11 +1,40 @@
 @import "tailwindcss";
 
+:root {
+  --bg-dark: #F3F4F6;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
+  --text-main: #1F2937;
+  --text-sub: #4B5563;
+  --border-color: rgba(0, 0, 0, 0.06);
+  --input-bg: #F9FAFB;
+  --btn-secondary: #E5E7EB;
+}
+
+html.dark {
+  --bg-dark: #05070F;
+  --bg-card: #0D1324;
+  --bg-sidebar: #0B0E1A;
+  --text-main: #F3F4F6;
+  --text-sub: #9CA3AF;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --input-bg: #111827;
+  --btn-secondary: #1F2937;
+}
+
 @theme {
-  --color-brand-dark: #05070F;
-  --color-brand-card: #0D1324;
-  --color-brand-primary: #6366F1;
+  --color-brand-dark: var(--bg-dark);
+  --color-brand-card: var(--bg-card);
+  --color-brand-sidebar: var(--bg-sidebar);
+  --color-text-main: var(--text-main);
+  --color-text-sub: var(--text-sub);
+  --color-border-custom: var(--border-color);
+  --color-input-bg: var(--input-bg);
+  --color-btn-secondary: var(--btn-secondary);
+
+  --color-brand-primary: #3B82F6;
   --color-brand-secondary: #06B6D4;
-  --color-brand-accent: #A855F7;
+  --color-brand-accent: #8B5CF6;
   --font-sans: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
   --animate-pulse-slow: pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-float: float 4s ease-in-out infinite;
@@ -22,12 +51,14 @@
 
 html {
   scroll-behavior: smooth;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
 }
 
 body {
   margin: 0;
-  background-color: var(--color-brand-dark);
-  color: #F3F4F6;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
   overflow-x: hidden;
 }
 
@@ -41,7 +72,7 @@ body {
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(to bottom right, #6366F1, #06B6D4);
+  background: linear-gradient(to bottom right, #3B82F6, #06B6D4);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -59,31 +90,22 @@ body {
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(to bottom right, #6366F1, #A855F7, #06B6D4);
+  background: linear-gradient(to bottom right, #3B82F6, #8B5CF6, #06B6D4);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.3;
   transition: opacity 0.3s ease;
 }
 
 .glow-border:hover::after {
-  opacity: 1;
+  opacity: 0.8;
 }
 
 .bg-grid {
   background-size: 50px 50px;
-  background-image: linear-gradient(to right, rgba(99, 102, 241, 0.07) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(99, 102, 241, 0.07) 1px, transparent 1px);
+  background-image: linear-gradient(to right, rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
 }
-
-.text-gradient-cyan {
-  background: linear-gradient(135deg, #06B6D4 0%, #6366F1 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -21,6 +21,7 @@ import { DocumentExportsModule } from './modules/document_exports/document_expor
 import { UniversityReviewsModule } from './modules/university_reviews/university_reviews.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AuditLogsModule } from './modules/audit_logs/audit_logs.module';
+import { AuditLogInterceptor } from './common/interceptors/audit_log.interceptor';
 
 @Module({
   imports: [
@@ -68,6 +69,10 @@ import { AuditLogsModule } from './modules/audit_logs/audit_logs.module';
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditLogInterceptor,
     },
   ],
 })

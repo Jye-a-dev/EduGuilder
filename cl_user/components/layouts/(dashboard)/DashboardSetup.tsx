@@ -9,6 +9,13 @@ interface DashboardSetupProps {
 }
 
 function LoadingScreen() {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.location.reload();
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="fixed inset-0 z-50 bg-brand-dark flex flex-col items-center justify-center overflow-hidden">
       <div className="absolute inset-0 bg-grid opacity-20 pointer-events-none" />

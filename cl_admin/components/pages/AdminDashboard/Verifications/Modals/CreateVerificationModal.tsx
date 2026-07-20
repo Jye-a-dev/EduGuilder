@@ -1,6 +1,8 @@
 "use client";
 
 import type { FormEvent } from "react";
+import type { Account } from "../../types";
+import { SearchableStudentDropdown } from "./SearchableStudentDropdown";
 
 interface CreateVerificationModalProps {
   isOpen: boolean;
@@ -11,6 +13,7 @@ interface CreateVerificationModalProps {
   newVerCardImageKey: string;
   setNewVerCardImageKey: (val: string) => void;
   onSubmit: (e: FormEvent) => void;
+  students: Account[];
 }
 
 export default function CreateVerificationModal({
@@ -22,6 +25,7 @@ export default function CreateVerificationModal({
   newVerCardImageKey,
   setNewVerCardImageKey,
   onSubmit,
+  students,
 }: CreateVerificationModalProps) {
   if (!isOpen) return null;
 
@@ -30,17 +34,14 @@ export default function CreateVerificationModal({
       <div className="glow-border w-full max-w-md rounded-2xl border border-gray-800 bg-cyber-card p-6 shadow-2xl relative">
         <h3 className="text-sm font-bold text-white mb-4 uppercase font-mono">Tạo Yêu Cầu Xác Thực</h3>
         <form onSubmit={onSubmit} className="space-y-4">
-          <div>
+          <div className="relative z-50">
             <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">
-              Mã sinh viên (Student ID UUID)
+              Chọn sinh viên (Student Search)
             </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
-              value={newVerStudentId}
-              onChange={(e) => setNewVerStudentId(e.target.value)}
-              className="w-full rounded-lg border border-gray-800 bg-cyber-bg px-3 py-2 text-xs font-mono text-white placeholder-gray-700 focus:border-cyber-primary focus:outline-none"
+            <SearchableStudentDropdown
+              students={students}
+              selectedStudentId={newVerStudentId}
+              onChange={setNewVerStudentId}
             />
           </div>
           <div>
@@ -66,7 +67,8 @@ export default function CreateVerificationModal({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-linear-to-r from-cyber-primary to-cyber-cyan text-xs font-bold text-white"
+              disabled={!newVerStudentId}
+              className="px-4 py-2 rounded-lg bg-linear-to-r from-cyber-primary to-cyber-cyan text-xs font-bold text-white disabled:opacity-50"
             >
               Xác nhận
             </button>

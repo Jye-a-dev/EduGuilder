@@ -97,11 +97,10 @@ export default function RegisterPage() {
 
       {feedback && (
         <div
-          className={`mb-4 flex items-center gap-2.5 rounded-xl p-3.5 font-mono text-xs border transition-all ${
-            feedback.type === "success"
-              ? "border-green-500/20 bg-green-500/10 text-green-400"
-              : "border-red-500/20 bg-red-500/10 text-red-400"
-          }`}
+          className={`mb-4 flex items-center gap-2.5 rounded-xl p-3.5 font-mono text-xs border transition-all ${feedback.type === "success"
+            ? "border-green-500/20 bg-green-500/10 text-green-400"
+            : "border-red-500/20 bg-red-500/10 text-red-400"
+            }`}
         >
           <i className={`fa-solid ${feedback.type === "success" ? "fa-circle-check" : "fa-triangle-exclamation"}`} />
           <span>{feedback.message}</span>
@@ -189,22 +188,20 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => setRole("student")}
-              className={`py-2 px-3 rounded-xl border font-mono text-xs font-bold transition-all ${
-                role === "student"
-                  ? "bg-brand-primary/10 border-brand-primary text-brand-secondary"
-                  : "bg-brand-dark/30 border-gray-800/80 text-gray-500 hover:text-gray-300"
-              }`}
+              className={`py-2 px-3 rounded-xl border font-mono text-xs font-bold transition-all ${role === "student"
+                ? "bg-brand-primary/10 border-brand-primary text-brand-secondary"
+                : "bg-brand-dark/30 border-gray-800/80 text-gray-500 hover:text-gray-300"
+                }`}
             >
               <i className="fa-solid fa-graduation-cap mr-1.5" /> Học sinh
             </button>
             <button
               type="button"
               onClick={() => setRole("uni")}
-              className={`py-2 px-3 rounded-xl border font-mono text-xs font-bold transition-all ${
-                role === "uni"
-                  ? "bg-brand-accent/10 border-brand-accent text-brand-accent"
-                  : "bg-brand-dark/30 border-gray-800/80 text-gray-500 hover:text-gray-300"
-              }`}
+              className={`py-2 px-3 rounded-xl border font-mono text-xs font-bold transition-all ${role === "uni"
+                ? "bg-brand-accent/10 border-brand-accent text-brand-accent"
+                : "bg-brand-dark/30 border-gray-800/80 text-gray-500 hover:text-gray-300"
+                }`}
             >
               <i className="fa-solid fa-building-columns mr-1.5" /> Đại học
             </button>

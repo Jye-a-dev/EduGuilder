@@ -4,6 +4,7 @@ import { useState, useEffect, type FormEvent } from "react";
 import DashboardSetup from "@/components/layouts/(dashboard)/DashboardSetup";
 import { useDashboard } from "@/components/layouts/(dashboard)/DashboardContext";
 import { useStudentVerifications } from "@/hooks/useStudentVerifications";
+import { useAccounts } from "@/hooks/useAccounts";
 import VerificationsTab from "./VerificationsTab";
 import CreateVerificationModal from "./Modals/CreateVerificationModal";
 import EditVerificationModal from "./Modals/EditVerificationModal";
@@ -27,6 +28,8 @@ function VerificationsInner() {
     deleteVerification,
   } = useStudentVerifications(token);
 
+  const { accounts, fetchAccounts } = useAccounts(token);
+
   const [newVerStudentId, setNewVerStudentId] = useState("");
   const [newVerCardImageKey, setNewVerCardImageKey] = useState("");
 
@@ -38,6 +41,7 @@ function VerificationsInner() {
 
   useEffect(() => {
     fetchVerifications();
+    fetchAccounts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -108,6 +112,7 @@ function VerificationsInner() {
     <>
       <VerificationsTab
         verifications={verifications}
+        accounts={accounts}
         isLoading={isLoading}
         error={error}
         onRetry={fetchVerifications}
@@ -126,6 +131,7 @@ function VerificationsInner() {
         newVerCardImageKey={newVerCardImageKey}
         setNewVerCardImageKey={setNewVerCardImageKey}
         onSubmit={handleCreateVerificationSubmit}
+        students={accounts}
       />
       <EditVerificationModal
         isOpen={activeModal === "edit-verification"}
@@ -140,6 +146,7 @@ function VerificationsInner() {
         editVerRejectReason={editVerRejectReason}
         setEditVerRejectReason={setEditVerRejectReason}
         onSubmit={handleEditVerificationSubmit}
+        students={accounts}
       />
     </>
   );

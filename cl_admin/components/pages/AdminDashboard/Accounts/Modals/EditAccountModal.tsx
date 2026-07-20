@@ -1,7 +1,8 @@
 "use client";
 
 import type { FormEvent } from "react";
-import type { UserRole } from "../../types";
+import type { UserRole, University } from "../../types";
+import { SearchableUniversityDropdown } from "./SearchableUniversityDropdown";
 
 interface EditAccountModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface EditAccountModalProps {
   editCurrentGrade: string;
   setEditCurrentGrade: (v: string) => void;
   onSubmit: (e: FormEvent) => void;
+  universities: University[];
 }
 
 export default function EditAccountModal({
@@ -35,12 +37,13 @@ export default function EditAccountModal({
   editCurrentGrade,
   setEditCurrentGrade,
   onSubmit,
+  universities,
 }: EditAccountModalProps) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-      <div className="glow-border w-full max-w-md rounded-2xl border border-gray-800 bg-cyber-card p-6 shadow-2xl">
+      <div className="glow-border w-full max-w-md rounded-2xl border border-gray-800 bg-cyber-card p-6 shadow-2xl relative">
         <h3 className="text-sm font-bold text-white mb-4 uppercase font-mono">
           Chỉnh sửa Tài Khoản
         </h3>
@@ -83,17 +86,15 @@ export default function EditAccountModal({
               className="w-full rounded-lg border border-gray-800 bg-cyber-bg px-3 py-2 text-xs text-white placeholder-gray-700 focus:border-cyber-primary focus:outline-none"
             />
           </div>
-          {editRole === "uni" && (
-            <div>
+          {(editRole === "uni" || editRole === "student") && (
+            <div className="relative z-50">
               <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">
-                University ID
+                Trường liên kết (University ID)
               </label>
-              <input
-                type="text"
-                placeholder="UUID của trường đại học"
-                value={editUniversityId}
-                onChange={(e) => setEditUniversityId(e.target.value)}
-                className="w-full rounded-lg border border-gray-800 bg-cyber-bg px-3 py-2 text-xs font-mono text-white placeholder-gray-700 focus:border-cyber-primary focus:outline-none"
+              <SearchableUniversityDropdown
+                universities={universities}
+                selectedUniversityId={editUniversityId}
+                onChange={setEditUniversityId}
               />
             </div>
           )}

@@ -59,11 +59,10 @@ export default function LoginPage() {
 
       {feedback && (
         <div
-          className={`mb-5 flex items-center gap-2.5 rounded-xl p-3.5 font-mono text-xs border transition-all ${
-            feedback.type === "success"
-              ? "border-green-500/20 bg-green-500/10 text-green-400"
-              : "border-red-500/20 bg-red-500/10 text-red-400"
-          }`}
+          className={`mb-5 flex items-center gap-2.5 rounded-xl p-3.5 font-mono text-xs border transition-all ${feedback.type === "success"
+            ? "border-green-500/20 bg-green-500/10 text-green-400"
+            : "border-red-500/20 bg-red-500/10 text-red-400"
+            }`}
         >
           <i className={`fa-solid ${feedback.type === "success" ? "fa-circle-check" : "fa-triangle-exclamation"}`} />
           <span>{feedback.message}</span>
@@ -86,7 +85,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="ten@truong.edu.vn"
-              className="w-full rounded-xl border border-gray-800/80 bg-brand-dark/50 py-3.5 pl-10 pr-4 font-mono text-sm text-white placeholder-gray-600 focus:border-brand-secondary focus:ring-1 focus:ring-brand-secondary focus:outline-none transition-all"
+              className="w-full rounded-xl border text-black! border-gray-800/80 bg-brand-dark/50 py-3.5 pl-10 pr-4 font-mono text-sm placeholder-gray-600 focus:border-brand-secondary focus:ring-1 focus:ring-brand-secondary focus:outline-none transition-all"
             />
           </div>
         </div>
@@ -111,7 +110,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
-              className="w-full rounded-xl border border-gray-800/80 bg-brand-dark/50 py-3.5 pl-10 pr-10 font-mono text-sm text-white placeholder-gray-600 focus:border-brand-secondary focus:ring-1 focus:ring-brand-secondary focus:outline-none transition-all"
+              className="w-full rounded-xl border text-black! border-gray-800/80 bg-brand-dark/50 py-3.5 pl-10 pr-10 font-mono text-sm placeholder-gray-600 focus:border-brand-secondary focus:ring-1 focus:ring-brand-secondary focus:outline-none transition-all"
             />
             <button
               type="button"
