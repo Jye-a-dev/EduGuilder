@@ -1,6 +1,14 @@
 "use client";
 
+import { useEffect } from "react";
+
 export default function LoadingScreen() {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.location.reload();
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <div className="fixed inset-0 z-9999 bg-cyber-bg flex flex-col items-center justify-center overflow-hidden">
       {/* Dot-grid background */}

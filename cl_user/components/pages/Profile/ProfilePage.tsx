@@ -12,7 +12,6 @@ import ProfileIdentityCard from "./ProfileIdentityCard";
 import StudentVerificationCard from "./StudentVerificationCard";
 import AccountSettingsForm from "./AccountSettingsForm";
 import StudentGradesTable from "./StudentGradesTable";
-import UniversityInfoPanel from "./UniversityInfoPanel";
 import EmailChangeModal from "./EmailChangeModal";
 import GradeCrudModal from "./GradeCrudModal";
 
@@ -23,10 +22,7 @@ export default function ProfilePage() {
     universities,
     fetchUniversities,
     singleUniversity,
-    fetchUniversityById,
-    updateUniversity,
-    isLoading: isUniLoading
-  } = useUniversities(token);
+    fetchUniversityById } = useUniversities(token);
   const { grades, fetchGrades, createGrade, updateGrade, deleteGrade } = useStudentGrades(token);
   const { verification, fetchVerification, createVerification } = useStudentVerifications(token);
 

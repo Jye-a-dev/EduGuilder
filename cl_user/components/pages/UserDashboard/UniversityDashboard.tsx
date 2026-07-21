@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import type { User } from "@/components/providers/AuthProvider";
 import type { University } from "@/hooks/useUniversities";
 import type { UniversityReview } from "@/hooks/useUniversityReviews";
@@ -13,6 +14,48 @@ interface UniversityDashboardProps {
   averageRating: string;
 }
 
+function renderDashboardComment(comment: string) {
+  const isInsider = comment.includes("--- ĐÁNH GIÁ NGƯỜI TRONG CUỘC ---");
+  const isOutsider = comment.includes("--- ĐÁNH GIÁ NGƯỜI NGOÀI CUỘC ---");
+
+  if (!isInsider && !isOutsider) {
+    const textOnly = comment.replace(/<[^>]*>/g, "");
+    return <p className="text-xs text-text-main font-light leading-relaxed wrap-break-word">{textOnly}</p>;
+  }
+
+  const lines = comment.split("\n");
+  const detailStartIdx = lines.findIndex((l) => l.includes("Nội dung chi tiết:"));
+  
+  const ratingLines = lines.filter((l) => l.includes("- ") && l.includes("/5"));
+  const rawDetailedText = detailStartIdx !== -1 ? lines.slice(detailStartIdx + 1).join("\n").trim() : "";
+  const detailedText = rawDetailedText.replace(/<[^>]*>/g, "").trim();
+
+  return (
+    <div className="space-y-2 mt-1 text-xs text-text-main">
+      {/* Ratings grid */}
+      <div className="grid grid-cols-2 gap-2 text-[10px] text-text-sub font-mono bg-brand-primary/5 p-2 rounded-lg border border-border-custom/40">
+        {ratingLines.map((line, idx) => {
+          const cleanLine = line.replace(/<[^>]*>/g, "").replace("- ", "").trim();
+          const [crit, val] = cleanLine.split(":");
+          return (
+            <div key={idx} className="flex items-center justify-between border-b border-border-custom/20 pb-0.5 font-sans">
+              <span className="truncate max-w-32.5" title={crit}>{crit}</span>
+              <span className="text-amber-500 font-bold ml-1 shrink-0">{val?.trim()}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Detailed comment text */}
+      {detailedText && (
+        <p className="text-xs italic leading-relaxed text-text-main border-l-2 border-brand-primary/40 pl-2">
+          &quot;{detailedText}&quot;
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function UniversityDashboard({
   user,
   singleUniversity,
@@ -20,6 +63,15 @@ export default function UniversityDashboard({
   admissions,
   averageRating,
 }: UniversityDashboardProps) {
+  // Filter reviews by insider vs outsider perspective
+  const insiderReviews = useMemo(() => {
+    return reviews.filter((r) => r.comment.includes("--- ĐÁNH GIÁ NGƯỜI TRONG CUỘC ---"));
+  }, [reviews]);
+
+  const outsiderReviews = useMemo(() => {
+    return reviews.filter((r) => !r.comment.includes("--- ĐÁNH GIÁ NGƯỜI TRONG CUỘC ---"));
+  }, [reviews]);
+
   return (
     <div className="space-y-6 relative">
       {/* --- HEADER --- */}
@@ -55,7 +107,7 @@ export default function UniversityDashboard({
           <div className="space-y-1.5">
             <span className="block text-[9px] font-bold text-text-sub uppercase tracking-wider font-mono">Đánh giá nhận được</span>
             <span className="block text-2xl font-black text-text-main font-sans tracking-tight">{reviews.length}</span>
-            <span className="text-[10px] text-text-sub font-light font-mono">Phản hồi từ sinh viên</span>
+            <span className="text-[10px] text-text-sub font-light font-mono">Tổng số phản hồi</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-blue-100/50 dark:bg-blue-950/20 flex items-center justify-center text-blue-500 shrink-0">
             <i className="fa-regular fa-comments text-lg" />
@@ -138,16 +190,22 @@ export default function UniversityDashboard({
 
         {/* Right Column - Reviews & Comments */}
         <div className="space-y-6">
+          {/* Đánh giá từ sinh viên (Insider) */}
           <div className="rounded-2xl border border-border-custom bg-brand-card p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-text-main">Đánh giá từ học sinh</h3>
+              <h3 className="text-sm font-bold text-text-main flex items-center justify-between w-full">
+                <span>Đánh giá từ sinh viên (Insider)</span>
+                <span className="text-[9px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full font-mono font-bold">
+                  {insiderReviews.length}
+                </span>
+              </h3>
             </div>
 
-            <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
-              {reviews.length === 0 ? (
-                <div className="py-8 text-center text-xs text-text-sub">Chưa nhận được phản hồi/đánh giá nào.</div>
+            <div className="space-y-4 max-h-60 overflow-y-auto pr-1">
+              {insiderReviews.length === 0 ? (
+                <div className="py-8 text-center text-xs text-text-sub">Chưa nhận được phản hồi từ sinh viên.</div>
               ) : (
-                reviews.map((rev) => (
+                insiderReviews.map((rev) => (
                   <div
                     key={rev.id}
                     className="p-3.5 rounded-xl bg-gray-50/30 dark:bg-gray-900/30 border border-border-custom space-y-2"
@@ -165,12 +223,47 @@ export default function UniversityDashboard({
                       </div>
                       <span className="text-[9px] text-text-sub font-mono">{rev.is_approved ? "Đã duyệt" : "Chờ duyệt"}</span>
                     </div>
-                      <p className="text-xs text-text-main font-light leading-relaxed">{rev.comment}</p>
-                    {rev.official_reply && (
-                      <div className="pt-2 mt-2 border-t border-border-custom/50 text-[10px] text-brand-primary">
-                        <span className="font-bold">Trường phản hồi:</span> {rev.official_reply}
+                    {renderDashboardComment(rev.comment)}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Đánh giá từ học sinh (Outsider) */}
+          <div className="rounded-2xl border border-border-custom bg-brand-card p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-text-main flex items-center justify-between w-full">
+                <span>Đánh giá từ học sinh (Outsider)</span>
+                <span className="text-[9px] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full font-mono font-bold">
+                  {outsiderReviews.length}
+                </span>
+              </h3>
+            </div>
+
+            <div className="space-y-4 max-h-60 overflow-y-auto pr-1">
+              {outsiderReviews.length === 0 ? (
+                <div className="py-8 text-center text-xs text-text-sub">Chưa nhận được phản hồi từ học sinh.</div>
+              ) : (
+                outsiderReviews.map((rev) => (
+                  <div
+                    key={rev.id}
+                    className="p-3.5 rounded-xl bg-gray-50/30 dark:bg-gray-900/30 border border-border-custom space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <i
+                            key={i}
+                            className={`fa-solid fa-star text-[9px] ${
+                              i < rev.rating_stars ? "text-amber-500" : "text-gray-300 dark:text-gray-700"
+                            }`}
+                          />
+                        ))}
                       </div>
-                    )}
+                      <span className="text-[9px] text-text-sub font-mono">{rev.is_approved ? "Đã duyệt" : "Chờ duyệt"}</span>
+                    </div>
+                    {renderDashboardComment(rev.comment)}
                   </div>
                 ))
               )}

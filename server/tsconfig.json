@@ -23,5 +23,9 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {}
+  },
+  "ts-node": {
+    "swc": true,
+    "transpileOnly": true
   }
 }

@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { UniversityReview } from "../types";
+import type { UniversityReview, University, Account } from "../types";
 
 type ApprovalFilter = "all" | "approved" | "pending";
 
 interface ReviewsTabProps {
   reviews: UniversityReview[];
+  universities?: University[];
+  accounts?: Account[];
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -16,8 +18,61 @@ interface ReviewsTabProps {
   setActiveModal: (modal: "create-review" | null) => void;
 }
 
+function renderParsedComment(comment: string) {
+  const isInsider = comment.includes("--- ĐÁNH GIÁ NGƯỜI TRONG CUỘC ---");
+  const isOutsider = comment.includes("--- ĐÁNH GIÁ NGƯỜI NGOÀI CUỘC ---");
+
+  if (!isInsider && !isOutsider) {
+    const textOnly = comment.replace(/<[^>]*>/g, "");
+    return <span className="text-gray-300 wrap-break-word line-clamp-3" title={textOnly}>{textOnly}</span>;
+  }
+
+  const lines = comment.split("\n");
+  const detailStartIdx = lines.findIndex((l) => l.includes("Nội dung chi tiết:"));
+  
+  const ratingLines = lines.filter((l) => l.includes("- ") && l.includes("/5"));
+  const rawDetailedText = detailStartIdx !== -1 ? lines.slice(detailStartIdx + 1).join("\n").trim() : "";
+  const detailedText = rawDetailedText.replace(/<[^>]*>/g, "").trim();
+
+  return (
+    <div className="space-y-1.5 py-1">
+      {/* Type badge */}
+      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-mono font-black uppercase border ${
+        isInsider 
+          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+          : "bg-blue-500/10 text-blue-400 border-blue-500/20"
+      }`}>
+        {isInsider ? "Insider Review 🎓" : "Outsider Review 👁️"}
+      </span>
+
+      {/* Ratings grid */}
+      <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[9px] text-gray-500 font-mono">
+        {ratingLines.map((line, idx) => {
+          const cleanLine = line.replace(/<[^>]*>/g, "").replace("- ", "").trim();
+          const [crit, val] = cleanLine.split(":");
+          return (
+            <div key={idx} className="flex items-center justify-between border-b border-gray-800/25 pb-0.5">
+              <span className="truncate max-w-27.5" title={crit}>{crit}</span>
+              <span className="text-amber-500 font-bold ml-1 shrink-0">{val?.trim()}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Detailed comment text */}
+      {detailedText && (
+        <p className="text-[10px] text-gray-300 italic line-clamp-2 mt-1" title={detailedText}>
+          &quot;{detailedText}&quot;
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function ReviewsTab({
   reviews,
+  universities = [],
+  accounts = [],
   isLoading = false,
   error = null,
   onRetry,
@@ -32,18 +87,26 @@ export default function ReviewsTab({
 
   const filtered = useMemo(() => {
     return reviews.filter((r) => {
+      const uni = universities.find((u) => u.id === r.university_id);
+      const acc = accounts.find((a) => a.id === r.reviewer_id);
+
       const matchesSearch =
         search === "" ||
-        r.university_id.toLowerCase().includes(search.toLowerCase()) ||
+        r.id.toLowerCase().includes(search.toLowerCase()) ||
         r.comment.toLowerCase().includes(search.toLowerCase()) ||
-        r.id.toLowerCase().includes(search.toLowerCase());
+        r.university_id.toLowerCase().includes(search.toLowerCase()) ||
+        (uni && uni.name.toLowerCase().includes(search.toLowerCase())) ||
+        (uni && uni.code.toLowerCase().includes(search.toLowerCase())) ||
+        (acc && acc.full_name.toLowerCase().includes(search.toLowerCase())) ||
+        (acc && acc.email.toLowerCase().includes(search.toLowerCase()));
+
       const matchesApproval =
         approvalFilter === "all" ||
         (approvalFilter === "approved" ? r.is_approved : !r.is_approved);
       const matchesRating = r.rating_stars >= minRating;
       return matchesSearch && matchesApproval && matchesRating;
     });
-  }, [reviews, search, approvalFilter, minRating]);
+  }, [reviews, search, approvalFilter, minRating, universities, accounts]);
 
   const counts = useMemo(
     () => ({
@@ -65,7 +128,7 @@ export default function ReviewsTab({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm theo University ID hoặc nội dung bình luận..."
+            placeholder="Tìm theo tên trường, mã trường, reviewer, hoặc nội dung..."
             className="w-full bg-cyber-card/60 border border-gray-800 rounded-lg pl-8 pr-4 py-2 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-cyber-primary/60 transition-colors"
           />
         </div>
@@ -105,7 +168,7 @@ export default function ReviewsTab({
               <button
                 key={s}
                 onClick={() => setApprovalFilter(s)}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all cursor-pointer ${
                   active
                     ? colorMap[s]
                     : "border-gray-800 text-gray-600 bg-transparent hover:border-gray-700 hover:text-gray-400"
@@ -119,7 +182,7 @@ export default function ReviewsTab({
 
         <button
           onClick={() => setActiveModal("create-review")}
-          className="px-4 py-2 rounded-lg bg-linear-to-r from-cyber-primary to-cyber-cyan text-xs font-bold text-white shadow hover:opacity-90 active:scale-95 transition-all shrink-0"
+          className="px-4 py-2 rounded-lg bg-linear-to-r from-cyber-primary to-cyber-cyan text-xs font-bold text-white shadow hover:opacity-90 active:scale-95 transition-all shrink-0 cursor-pointer"
         >
           <i className="fa-solid fa-plus mr-1.5" /> Thêm Mới
         </button>
@@ -131,7 +194,8 @@ export default function ReviewsTab({
           <thead>
             <tr className="border-b border-gray-900 bg-cyber-card/80 font-mono text-[10px] font-bold uppercase tracking-wider text-gray-400">
               <th className="p-4">Review ID</th>
-              <th className="p-4">University ID</th>
+              <th className="p-4">Trường đại học</th>
+              <th className="p-4">Người đánh giá</th>
               <th className="p-4">Đánh giá</th>
               <th className="p-4">Nội dung bình luận</th>
               <th className="p-4">Trạng thái</th>
@@ -142,19 +206,19 @@ export default function ReviewsTab({
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="animate-pulse">
-                  {Array.from({ length: 6 }).map((__, j) => (
+                  {Array.from({ length: 7 }).map((__, j) => (
                     <td key={j} className="p-4"><div className="h-3 bg-gray-800 rounded w-3/4" /></td>
                   ))}
                 </tr>
               ))
             ) : error ? (
               <tr>
-                <td colSpan={6} className="p-10 text-center">
+                <td colSpan={7} className="p-10 text-center">
                   <div className="inline-flex flex-col items-center gap-3">
                     <i className="fa-solid fa-triangle-exclamation text-cyber-alert text-2xl" />
                     <p className="text-cyber-alert font-mono text-xs">{error}</p>
                     {onRetry && (
-                      <button onClick={onRetry} className="px-4 py-1.5 rounded-lg border border-cyber-primary/40 text-cyber-cyan text-xs font-bold hover:bg-cyber-primary/10 transition-all">
+                      <button onClick={onRetry} className="px-4 py-1.5 rounded-lg border border-cyber-primary/40 text-cyber-cyan text-xs font-bold hover:bg-cyber-primary/10 transition-all cursor-pointer">
                         <i className="fa-solid fa-rotate-right mr-1.5" /> Thử lại
                       </button>
                     )}
@@ -163,62 +227,120 @@ export default function ReviewsTab({
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-gray-500 font-mono">
+                <td colSpan={7} className="p-8 text-center text-gray-500 font-mono">
                   {search || approvalFilter !== "all" || minRating > 1
                     ? "Không có kết quả phù hợp với bộ lọc."
                     : "Không tìm thấy bài viết đánh giá nào."}
                 </td>
               </tr>
             ) : (
-              filtered.map((r) => (
-                <tr key={r.id} className="hover:bg-gray-800/20 transition-colors">
-                  <td className="p-4 font-mono text-[10px] text-gray-455 select-all">{r.id}</td>
-                  <td className="p-4 font-mono text-gray-300 select-all">{r.university_id}</td>
-                  <td className="p-4 text-cyber-warning font-bold flex items-center gap-0.5">
-                    {r.rating_stars} <i className="fa-solid fa-star text-[10px]" />
-                  </td>
-                  <td className="p-4 max-w-sm truncate text-gray-300" title={r.comment}>
-                    {r.comment}
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
-                        r.is_approved
-                          ? "bg-cyber-success/10 border-cyber-success/30 text-cyber-success"
-                          : "bg-cyber-warning/10 border-cyber-warning/30 text-cyber-warning"
-                      }`}
-                    >
-                      {r.is_approved ? "APPROVED" : "PENDING"}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right space-x-2">
-                    <button
-                      onClick={() => handleToggleReviewApproval(r.id, r.is_approved)}
-                      className={`px-2 py-1 rounded font-bold transition-all border ${
-                        r.is_approved
-                          ? "bg-cyber-warning/15 border-cyber-warning/30 text-cyber-warning hover:bg-cyber-warning/25"
-                          : "bg-cyber-success/15 border-cyber-success/30 text-cyber-success hover:bg-cyber-success/25"
-                      }`}
-                    >
-                      {r.is_approved ? "Ẩn" : "Phê duyệt"}
-                    </button>
-                    <button
-                      onClick={() => openEditReview(r)}
-                      className="text-gray-500 hover:text-white transition-all p-1"
-                      title="Xem chi tiết & Sửa"
-                    >
-                      <i className="fa-solid fa-pen" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteReview(r.id)}
-                      className="text-gray-500 hover:text-cyber-alert transition-all p-1"
-                      title="Xóa đánh giá"
-                    >
-                      <i className="fa-solid fa-trash-can" />
-                    </button>
-                  </td>
-                </tr>
-              ))
+              filtered.map((r) => {
+                const uni = universities.find((u) => u.id === r.university_id);
+                const acc = accounts.find((a) => a.id === r.reviewer_id);
+
+                return (
+                  <tr key={r.id} className="hover:bg-gray-800/20 transition-colors">
+                    {/* Review ID */}
+                    <td className="p-4 font-mono text-[10px] text-gray-500">
+                      <div className="flex items-center gap-1.5">
+                        <span className="select-all" title={r.id}>
+                          {r.id.substring(0, 8)}...
+                        </span>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(r.id);
+                          }}
+                          className="text-gray-600 hover:text-gray-400 p-0.5 cursor-pointer"
+                          title="Sao chép ID"
+                        >
+                          <i className="fa-regular fa-copy text-[10px]" />
+                        </button>
+                      </div>
+                    </td>
+
+                    {/* University Info */}
+                    <td className="p-4">
+                      <div className="max-w-40">
+                        <span className="block font-bold text-gray-200 text-xs">
+                          {uni ? uni.code : "---"}
+                        </span>
+                        <span className="block text-[10px] text-gray-500 truncate" title={uni ? uni.name : ""}>
+                          {uni ? uni.name : r.university_id}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Reviewer Info */}
+                    <td className="p-4">
+                      <div className="max-w-40">
+                        <span className="block font-semibold text-gray-200 text-xs">
+                          {acc ? acc.full_name : "---"}
+                        </span>
+                        <span className="block text-[10px] text-gray-500 font-mono truncate" title={acc ? acc.email : ""}>
+                          {acc ? acc.email : r.reviewer_id}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Rating */}
+                    <td className="p-4">
+                      <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg text-amber-500 font-mono font-bold w-fit">
+                        <span>{r.rating_stars}</span>
+                        <i className="fa-solid fa-star text-[9px]" />
+                      </div>
+                    </td>
+
+                    {/* Comment Content */}
+                    <td className="p-4 max-w-sm">
+                      {renderParsedComment(r.comment)}
+                    </td>
+
+                    {/* Status */}
+                    <td className="p-4">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black font-mono border ${
+                          r.is_approved
+                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                            : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${r.is_approved ? "bg-emerald-400" : "bg-amber-400"}`} />
+                        {r.is_approved ? "APPROVED" : "PENDING"}
+                      </span>
+                    </td>
+
+                    {/* Action buttons */}
+                    <td className="p-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleToggleReviewApproval(r.id, r.is_approved)}
+                          className={`px-2.5 py-1.5 rounded font-bold transition-all border text-[10px] cursor-pointer ${
+                            r.is_approved
+                              ? "bg-amber-500/15 border-amber-500/30 text-amber-400 hover:bg-amber-500/25"
+                              : "bg-emerald-500/15 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25"
+                          }`}
+                        >
+                          {r.is_approved ? "Ẩn" : "Phê duyệt"}
+                        </button>
+                        <button
+                          onClick={() => openEditReview(r)}
+                          className="w-7 h-7 rounded border border-gray-800 bg-cyber-card/40 flex items-center justify-center text-gray-500 hover:text-white hover:border-gray-700 transition-all cursor-pointer"
+                          title="Xem chi tiết & Sửa"
+                        >
+                          <i className="fa-solid fa-pen text-[10px]" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReview(r.id)}
+                          className="w-7 h-7 rounded border border-red-500/10 bg-red-500/5 flex items-center justify-center text-gray-600 hover:text-red-400 hover:border-red-500/20 transition-all cursor-pointer"
+                          title="Xóa đánh giá"
+                        >
+                          <i className="fa-solid fa-trash-can text-[10px]" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -232,5 +354,3 @@ export default function ReviewsTab({
     </div>
   );
 }
-
-

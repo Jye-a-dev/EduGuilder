@@ -26,6 +26,15 @@ function buildUrl(
   return url.toString();
 }
 
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+    this.name = "ApiError";
+  }
+}
+
 async function request<T>(path: string, options: FetchOptions = {}): Promise<T> {
   const { token, params, ...init } = options;
 
@@ -46,7 +55,7 @@ async function request<T>(path: string, options: FetchOptions = {}): Promise<T> 
       Array.isArray(errData?.message)
         ? errData.message.join(", ")
         : errData?.message || `HTTP ${res.status}`;
-    throw new Error(msg);
+    throw new ApiError(msg, res.status);
   }
 
   // Handle 204 No Content

@@ -73,7 +73,11 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
     ? [
       { href: `/${user.role}/dashboard`, label: "Tổng quan", icon: "fa-solid fa-compass" },
       { href: `/${user.role}/knowledge`, label: "Đồ thị tri thức", icon: "fa-solid fa-circle-nodes" },
-      { href: `/${user.role}/universities`, label: "Trường Đại học", icon: "fa-solid fa-building-columns" },
+      {
+        href: `/${user.role}/universities`,
+        label: user.role === "uni" ? "Đánh giá từ sinh viên" : "Đánh giá từ học sinh",
+        icon: "fa-solid fa-building-columns"
+      },
       { href: `/${user.role}/exports`, label: "Tài liệu đã xuất", icon: "fa-solid fa-file-export" },
       { href: `/${user.role}/profile`, label: "Hồ sơ cá nhân", icon: "fa-solid fa-id-card-clip" },
       { href: `/${user.role}/settings`, label: "Cài đặt hệ thống", icon: "fa-solid fa-gears" },

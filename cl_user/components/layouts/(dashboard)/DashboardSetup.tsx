@@ -12,7 +12,7 @@ function LoadingScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       window.location.reload();
-    }, 1500);
+    }, 5000);
     return () => clearTimeout(timer);
   }, []);
 

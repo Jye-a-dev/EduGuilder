@@ -4,6 +4,8 @@ import { useState, useEffect, type FormEvent } from "react";
 import DashboardSetup from "@/components/layouts/(dashboard)/DashboardSetup";
 import { useDashboard } from "@/components/layouts/(dashboard)/DashboardContext";
 import { useUniversityReviews } from "@/hooks/useUniversityReviews";
+import { useUniversities } from "@/hooks/useUniversities";
+import { useAccounts } from "@/hooks/useAccounts";
 import ReviewsTab from "./ReviewsTab";
 import CreateReviewModal from "./Modals/CreateReviewModal";
 import EditReviewModal from "./Modals/EditReviewModal";
@@ -17,7 +19,7 @@ function ReviewsInner() {
 
   const {
     reviews,
-    isLoading,
+    isLoading: reviewsLoading,
     error,
     fetchReviews,
     createReview,
@@ -25,6 +27,11 @@ function ReviewsInner() {
     toggleReviewApproval,
     deleteReview,
   } = useUniversityReviews(token);
+
+  const { universities, fetchUniversities, isLoading: unisLoading } = useUniversities(token);
+  const { accounts, fetchAccounts, isLoading: accountsLoading } = useAccounts(token);
+
+  const isLoading = reviewsLoading || unisLoading || accountsLoading;
 
   const [newRevUniId, setNewRevUniId] = useState("");
   const [newRevReviewerId, setNewRevReviewerId] = useState("");
@@ -39,6 +46,8 @@ function ReviewsInner() {
 
   useEffect(() => {
     fetchReviews();
+    fetchUniversities();
+    fetchAccounts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -101,6 +110,8 @@ function ReviewsInner() {
     <>
       <ReviewsTab
         reviews={reviews}
+        universities={universities}
+        accounts={accounts}
         isLoading={isLoading}
         error={error}
         onRetry={fetchReviews}
