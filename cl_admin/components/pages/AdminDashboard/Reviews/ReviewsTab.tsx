@@ -18,7 +18,51 @@ interface ReviewsTabProps {
   setActiveModal: (modal: "create-review" | null) => void;
 }
 
-function renderParsedComment(comment: string) {
+function renderParsedComment(comment: string, ratings?: Record<string, number | boolean | string | undefined | null> | null) {
+  if (ratings && (ratings.c1 !== undefined || ratings.c2 !== undefined || ratings.c3 !== undefined || ratings.c4 !== undefined)) {
+    const isInsider = ratings.isInsider ?? false;
+    const c1Label = isInsider ? "Chất lượng đào tạo" : "Uy tín & Thương hiệu";
+    const c2Label = isInsider ? "Cơ sở vật chất" : "Học phí & Học bổng";
+    const c3Label = isInsider ? "Đội ngũ giảng viên" : "Vị trí & Khuôn viên";
+    const c4Label = isInsider ? "Đời sống sinh viên" : "Yêu cầu đầu vào";
+
+    const ratingLines = [
+      { crit: c1Label, val: ratings.c1 },
+      { crit: c2Label, val: ratings.c2 },
+      { crit: c3Label, val: ratings.c3 },
+      { crit: c4Label, val: ratings.c4 },
+    ];
+
+    const textOnly = comment.replace(/<[^>]*>/g, "").trim();
+
+    return (
+      <div className="space-y-1.5 py-1">
+        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-mono font-black uppercase border ${
+          isInsider 
+            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+            : "bg-blue-500/10 text-blue-400 border-blue-500/20"
+        }`}>
+          {isInsider ? "Insider Review 🎓" : "Outsider Review 👁️"}
+        </span>
+
+        <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[9px] text-gray-500 font-mono">
+          {ratingLines.map((item, idx) => (
+            <div key={idx} className="flex items-center justify-between border-b border-gray-800/25 pb-0.5">
+              <span className="truncate max-w-27.5" title={item.crit}>{item.crit}</span>
+              <span className="text-amber-500 font-bold ml-1 shrink-0">{item.val}/5 ⭐</span>
+            </div>
+          ))}
+        </div>
+
+        {textOnly && (
+          <p className="text-[10px] text-gray-300 italic line-clamp-2 mt-1" title={textOnly}>
+            &quot;{textOnly}&quot;
+          </p>
+        )}
+      </div>
+    );
+  }
+
   const isInsider = comment.includes("--- ĐÁNH GIÁ NGƯỜI TRONG CUỘC ---");
   const isOutsider = comment.includes("--- ĐÁNH GIÁ NGƯỜI NGOÀI CUỘC ---");
 
@@ -292,7 +336,7 @@ export default function ReviewsTab({
 
                     {/* Comment Content */}
                     <td className="p-4 max-w-sm">
-                      {renderParsedComment(r.comment)}
+                      {renderParsedComment(r.comment, r.ratings)}
                     </td>
 
                     {/* Status */}

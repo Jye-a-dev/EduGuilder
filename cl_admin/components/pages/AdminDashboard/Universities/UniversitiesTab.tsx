@@ -6,11 +6,6 @@ import type { University } from "../types";
 type VerifiedFilter = "all" | "verified" | "unverified";
 type RegionFilter = "all" | "Miền Bắc" | "Miền Trung" | "Miền Nam";
 
-const REGION_COLOR: Record<string, string> = {
-  "Miền Bắc":  "bg-blue-500/10 border-blue-500/30 text-blue-400",
-  "Miền Trung": "bg-amber-500/10 border-amber-500/30 text-amber-400",
-  "Miền Nam":  "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
-};
 
 interface UniversitiesTabProps {
   universities: University[];
@@ -115,11 +110,10 @@ export default function UniversitiesTab({
               <button
                 key={s}
                 onClick={() => setVerifiedFilter(s)}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all ${
-                  active
-                    ? colorMap[s]
-                    : "border-gray-800 text-gray-600 bg-transparent hover:border-gray-700 hover:text-gray-400"
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all ${active
+                  ? colorMap[s]
+                  : "border-gray-800 text-gray-600 bg-transparent hover:border-gray-700 hover:text-gray-400"
+                  }`}
               >
                 {label[s]} <span className="opacity-60">({counts[s]})</span>
               </button>
@@ -133,11 +127,10 @@ export default function UniversitiesTab({
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setRegionFilter("all")}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all ${
-              regionFilter === "all"
-                ? "border-gray-600 text-gray-300 bg-gray-800/50"
-                : "border-gray-800 text-gray-600 bg-transparent hover:border-gray-700 hover:text-gray-400"
-            }`}
+            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all ${regionFilter === "all"
+              ? "border-gray-600 text-gray-300 bg-gray-800/50"
+              : "border-gray-800 text-gray-600 bg-transparent hover:border-gray-700 hover:text-gray-400"
+              }`}
           >
             Tất cả khu vực
           </button>
@@ -152,11 +145,10 @@ export default function UniversitiesTab({
               <button
                 key={r}
                 onClick={() => setRegionFilter(r)}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all ${
-                  active
-                    ? cls[r]
-                    : "border-gray-800 text-gray-600 bg-transparent hover:border-gray-700 hover:text-gray-400"
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border transition-all ${active
+                  ? cls[r]
+                  : "border-gray-800 text-gray-600 bg-transparent hover:border-gray-700 hover:text-gray-400"
+                  }`}
               >
                 {r} <span className="opacity-60">({regionCounts[r]})</span>
               </button>
@@ -173,8 +165,10 @@ export default function UniversitiesTab({
               <th className="p-4">University ID</th>
               <th className="p-4">Mã Code</th>
               <th className="p-4">Tên Trường</th>
+              <th className="p-4">Loại hình</th>
               <th className="p-4">Khu Vực</th>
               <th className="p-4">Học phí</th>
+              <th className="p-4">Website</th>
               <th className="p-4">Xác thực</th>
               <th className="p-4 text-right">Hành động</th>
             </tr>
@@ -183,7 +177,7 @@ export default function UniversitiesTab({
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="animate-pulse">
-                  {Array.from({ length: 7 }).map((__, j) => (
+                  {Array.from({ length: 9 }).map((__, j) => (
                     <td key={j} className="p-4">
                       <div className="h-3 bg-gray-800 rounded w-3/4" />
                     </td>
@@ -192,7 +186,7 @@ export default function UniversitiesTab({
               ))
             ) : error ? (
               <tr>
-                <td colSpan={7} className="p-10 text-center">
+                <td colSpan={9} className="p-10 text-center">
                   <div className="inline-flex flex-col items-center gap-3">
                     <i className="fa-solid fa-triangle-exclamation text-cyber-alert text-2xl" />
                     <p className="text-cyber-alert font-mono text-xs">{error}</p>
@@ -209,7 +203,7 @@ export default function UniversitiesTab({
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="p-8 text-center text-gray-500 font-mono">
+                <td colSpan={9} className="p-8 text-center text-gray-500 font-mono">
                   {search || verifiedFilter !== "all" || regionFilter !== "all"
                     ? "Không có kết quả phù hợp với bộ lọc."
                     : "Không tìm thấy dữ liệu trường đại học nào."}
@@ -217,46 +211,91 @@ export default function UniversitiesTab({
               </tr>
             ) : (
               filtered.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-800/20 transition-colors">
-                  <td className="p-4 font-mono text-[10px] text-gray-455 select-all">{u.id}</td>
-                  <td className="p-4 font-mono font-bold text-cyber-cyan">{u.code}</td>
-                  <td className="p-4 text-gray-200 font-bold">{u.name}</td>
-                  <td className="p-4">
+                <tr key={u.id} className="hover:bg-gray-800/30 transition-colors border-b border-gray-900/60 last:border-0">
+                  <td className="p-4 font-mono text-[10px] text-gray-500 select-all max-w-30 truncate" title={u.id}>
+                    {u.id}
+                  </td>
+                  <td className="p-4 font-mono font-bold text-cyber-cyan whitespace-nowrap">
+                    <span className="bg-cyber-cyan/10 px-2 py-0.5 rounded border border-cyber-cyan/20">
+                      {u.code}
+                    </span>
+                  </td>
+                  <td className="p-4 text-gray-100 font-semibold text-xs">{u.name}</td>
+                  <td className="p-4 whitespace-nowrap">
+                    {u.type ? (
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap ${u.type === "công lập"
+                          ? "bg-purple-500/15 border-purple-500/30 text-purple-300"
+                          : u.type === "tư thục"
+                            ? "bg-blue-500/15 border-blue-500/30 text-blue-300"
+                            : "bg-amber-500/15 border-amber-500/30 text-amber-300"
+                          }`}
+                      >
+                        {u.type}
+                      </span>
+                    ) : (
+                      <span className="text-gray-600 font-mono">—</span>
+                    )}
+                  </td>
+                  <td className="p-4 whitespace-nowrap">
                     {u.region ? (
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${REGION_COLOR[u.region] ?? "bg-gray-800/50 border-gray-700 text-gray-400"}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold border whitespace-nowrap ${u.region === "Miền Bắc"
+                          ? "bg-sky-500/15 border-sky-500/30 text-sky-300"
+                          : u.region === "Miền Trung"
+                            ? "bg-orange-500/15 border-orange-500/30 text-orange-300"
+                            : "bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
+                          }`}
+                      >
                         {u.region}
                       </span>
                     ) : (
                       <span className="text-gray-600 font-mono">—</span>
                     )}
                   </td>
-                  <td className="p-4 text-gray-400 font-mono">{u.tuition_fees || "-"}</td>
-                  <td className="p-4">
-                    <span
-                      onClick={() => handleToggleUniversityVerification(u.id, u.is_verified)}
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border cursor-pointer select-none transition-all ${
-                        u.is_verified
-                          ? "bg-cyber-success/10 border-cyber-success/30 text-cyber-success hover:bg-cyber-success/25"
-                          : "bg-cyber-alert/10 border-cyber-alert/30 text-cyber-alert hover:bg-cyber-alert/25"
-                      }`}
-                    >
-                      {u.is_verified ? "VERIFIED" : "UNVERIFIED"}
-                    </span>
+                  <td className="p-4 text-gray-300 font-mono text-[11px] whitespace-nowrap">{u.tuition_fees || "—"}</td>
+                  <td className="p-4 whitespace-nowrap">
+                    {u.website_url ? (
+                      <a
+                        href={u.website_url.startsWith("http") ? u.website_url : `https://${u.website_url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-cyber-primary/10 border border-cyber-primary/30 text-cyber-cyan hover:bg-cyber-primary/20 text-[11px] font-mono transition-all"
+                      >
+                        <span>Trang chủ</span>
+                        <i className="fa-solid fa-arrow-up-right-from-square text-[9px]" />
+                      </a>
+                    ) : (
+                      <span className="text-gray-600 font-mono">—</span>
+                    )}
                   </td>
-                  <td className="p-4 text-right space-x-2">
+                  <td className="p-4 whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleUniversityVerification(u.id, u.is_verified)}
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold font-mono uppercase border cursor-pointer select-none transition-all ${u.is_verified
+                        ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25"
+                        : "bg-rose-500/15 border-rose-500/30 text-rose-400 hover:bg-rose-500/25"
+                        }`}
+                    >
+                      <i className={`fa-solid ${u.is_verified ? "fa-circle-check" : "fa-circle-xmark"} text-[9px]`} />
+                      {u.is_verified ? "VERIFIED" : "UNVERIFIED"}
+                    </button>
+                  </td>
+                  <td className="p-4 text-right whitespace-nowrap space-x-1">
                     <button
                       onClick={() => openEditUniversity(u)}
-                      className="text-gray-500 hover:text-white transition-all p-1"
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-all cursor-pointer"
                       title="Sửa thông tin"
                     >
-                      <i className="fa-solid fa-pen" />
+                      <i className="fa-solid fa-pen text-xs" />
                     </button>
                     <button
                       onClick={() => handleDeleteUniversity(u.id)}
-                      className="text-gray-500 hover:text-cyber-alert transition-all p-1"
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-cyber-alert hover:bg-rose-500/10 transition-all cursor-pointer"
                       title="Xóa trường"
                     >
-                      <i className="fa-solid fa-trash-can" />
+                      <i className="fa-solid fa-trash-can text-xs" />
                     </button>
                   </td>
                 </tr>

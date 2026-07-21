@@ -38,13 +38,21 @@ export function useUniversityReviews(token: string | null) {
     universityId: string,
     reviewerId: string,
     ratingStars: number,
-    comment: string
+    comment: string,
+    ratings?: Record<string, number | boolean | string | undefined | null>
   ) => {
     if (!token) return;
     setError(null);
     await apiClient.post(
       "/university_reviews",
-      { university_id: universityId, reviewer_id: reviewerId, rating_stars: ratingStars, comment, is_approved: true },
+      {
+        university_id: universityId,
+        reviewer_id: reviewerId,
+        rating_stars: ratingStars,
+        comment,
+        is_approved: true,
+        ratings,
+      },
       { token }
     );
     await fetchReviews();
@@ -52,7 +60,13 @@ export function useUniversityReviews(token: string | null) {
 
   const updateReview = async (
     id: string,
-    body: { rating_stars: number; comment: string; official_reply?: string | null; is_approved: boolean }
+    body: {
+      rating_stars: number;
+      comment: string;
+      official_reply?: string | null;
+      is_approved: boolean;
+      ratings?: Record<string, number | boolean | string | undefined | null>;
+    }
   ) => {
     if (!token) return;
     setError(null);

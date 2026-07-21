@@ -38,12 +38,16 @@ function UniversitiesInner() {
   const [newUniName, setNewUniName] = useState("");
   const [newUniRegion, setNewUniRegion] = useState("");
   const [newUniTuition, setNewUniTuition] = useState("");
+  const [newUniWebsiteUrl, setNewUniWebsiteUrl] = useState("");
+  const [newUniType, setNewUniType] = useState("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editUniCode, setEditUniCode] = useState("");
   const [editUniName, setEditUniName] = useState("");
   const [editUniRegion, setEditUniRegion] = useState("");
   const [editUniTuition, setEditUniTuition] = useState("");
+  const [editUniWebsiteUrl, setEditUniWebsiteUrl] = useState("");
+  const [editUniType, setEditUniType] = useState("");
   const [editUniVerified, setEditUniVerified] = useState(false);
 
   useEffect(() => {
@@ -61,11 +65,20 @@ function UniversitiesInner() {
     e.preventDefault();
     setModalFeedback(null);
     try {
-      await createUniversity(newUniCode, newUniName, newUniTuition, newUniRegion);
+      await createUniversity(
+        newUniCode,
+        newUniName,
+        newUniTuition,
+        newUniRegion || null,
+        newUniWebsiteUrl || null,
+        newUniType || null
+      );
       setNewUniCode("");
       setNewUniName("");
       setNewUniRegion("");
       setNewUniTuition("");
+      setNewUniWebsiteUrl("");
+      setNewUniType("");
       closeModal();
     } catch (err: unknown) {
       setModalFeedback(err instanceof Error ? err.message : "Thao tác thất bại.");
@@ -78,6 +91,8 @@ function UniversitiesInner() {
     setEditUniName(u.name);
     setEditUniRegion(u.region || "");
     setEditUniTuition(u.tuition_fees || "");
+    setEditUniWebsiteUrl(u.website_url || "");
+    setEditUniType(u.type || "");
     setEditUniVerified(u.is_verified);
     setActiveModal("edit-university");
   };
@@ -92,6 +107,8 @@ function UniversitiesInner() {
         name: editUniName,
         region: editUniRegion || null,
         tuition_fees: editUniTuition || null,
+        website_url: editUniWebsiteUrl || null,
+        type: editUniType || null,
         is_verified: editUniVerified,
       });
       closeModal();
@@ -142,6 +159,10 @@ function UniversitiesInner() {
         setNewUniRegion={setNewUniRegion}
         newUniTuition={newUniTuition}
         setNewUniTuition={setNewUniTuition}
+        newUniWebsiteUrl={newUniWebsiteUrl}
+        setNewUniWebsiteUrl={setNewUniWebsiteUrl}
+        newUniType={newUniType}
+        setNewUniType={setNewUniType}
         onSubmit={handleCreateUniversitySubmit}
       />
 
@@ -157,6 +178,10 @@ function UniversitiesInner() {
         setEditUniRegion={setEditUniRegion}
         editUniTuition={editUniTuition}
         setEditUniTuition={setEditUniTuition}
+        editUniWebsiteUrl={editUniWebsiteUrl}
+        setEditUniWebsiteUrl={setEditUniWebsiteUrl}
+        editUniType={editUniType}
+        setEditUniType={setEditUniType}
         editUniVerified={editUniVerified}
         setEditUniVerified={setEditUniVerified}
         onSubmit={handleEditUniversitySubmit}

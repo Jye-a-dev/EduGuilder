@@ -17,6 +17,7 @@ export interface UniversityReview {
   comment: string;
   is_approved: boolean;
   official_reply?: string | null;
+  ratings?: Record<string, number | boolean> | null;
   created_at: string;
 }
 
@@ -27,6 +28,8 @@ export interface University {
   region?: string | null;
   logo_storage_key?: string | null;
   tuition_fees?: string | null;
+  website_url?: string | null;
+  type?: string | null;
   is_verified: boolean;
   created_at: string;
 }
