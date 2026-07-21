@@ -4,7 +4,7 @@
   "sourceRoot": "apps/server/src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "webpack": true,
+    "webpack": false,
     "builder": "swc",
     "tsConfigPath": "apps/server/tsconfig.app.json"
   },

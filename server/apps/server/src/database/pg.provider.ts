@@ -6,7 +6,7 @@ export const PG_CONNECTION = 'PG_CONNECTION';
 
 export const pgProvider = {
   provide: PG_CONNECTION,
-  useFactory: async (configService: ConfigService) => {
+  useFactory: (configService: ConfigService) => {
     const logger = new Logger('DatabaseConnection');
     const pool = new Pool({
       host: configService.get<string>('database.host'),
@@ -16,19 +16,21 @@ export const pgProvider = {
       database: configService.get<string>('database.database'),
     });
 
-    try {
-      const client = await pool.connect();
-      const dbName = configService.get<string>('database.database');
-      const host = configService.get<string>('database.host');
-      const port = configService.get<number>('database.port');
-      logger.log(
-        `Successfully connected to database "${dbName}" at ${host}:${port}`,
-      );
-      client.release();
-    } catch (error) {
-      const errMsg = error instanceof Error ? error.message : String(error);
-      logger.error(`Failed to connect to database: ${errMsg}`);
-    }
+    // Run connection test in the background so it does not block application startup
+    pool.connect()
+      .then((client) => {
+        const dbName = configService.get<string>('database.database');
+        const host = configService.get<string>('database.host');
+        const port = configService.get<number>('database.port');
+        logger.log(
+          `Successfully connected to database "${dbName}" at ${host}:${port}`,
+        );
+        client.release();
+      })
+      .catch((error) => {
+        const errMsg = error instanceof Error ? error.message : String(error);
+        logger.error(`Failed to connect to database: ${errMsg}`);
+      });
 
     return pool;
   },
