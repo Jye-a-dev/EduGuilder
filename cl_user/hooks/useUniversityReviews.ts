@@ -11,6 +11,7 @@ export interface UniversityReview {
   comment: string;
   official_reply?: string | null;
   is_approved: boolean;
+  ratings?: Record<string, number | boolean> | null;
   created_at: string;
 }
 
@@ -41,6 +42,7 @@ export function useUniversityReviews(token: string | null) {
     reviewer_id: string;
     rating_stars: number;
     comment: string;
+    ratings?: Record<string, number | boolean>;
   }) => {
     if (!token) return;
     setIsLoading(true);
@@ -60,6 +62,7 @@ export function useUniversityReviews(token: string | null) {
   const updateReview = async (id: string, payload: {
     rating_stars: number;
     comment: string;
+    ratings?: Record<string, number | boolean>;
   }) => {
     if (!token) return;
     setIsLoading(true);

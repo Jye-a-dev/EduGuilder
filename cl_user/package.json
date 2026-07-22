@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "kill-port 5200 && next dev -p 5200 --turbo",
+    "dev": "npx kill-port 5200 && next dev -p 5200 --turbo",
     "build": "next build",
     "start": "next start -p 5200",
     "lint": "eslint"

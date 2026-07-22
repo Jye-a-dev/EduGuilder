@@ -2,22 +2,19 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-  Inject,
-  forwardRef,
   BadRequestException,
 } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { PasswordResetTokensRepository } from './repositories/password_reset_tokens.repository';
 import { QueryPasswordResetTokenDto } from './dto/query_password_reset_token.dto';
 import { PasswordResetToken } from './entities/password_reset_token.entity';
-import { UsersService } from '../users/users.service';
+import { UsersRepository } from '../users/repositories/users.repository';
 
 @Injectable()
 export class PasswordResetTokensService {
   constructor(
     private readonly repository: PasswordResetTokensRepository,
-    @Inject(forwardRef(() => UsersService))
-    private readonly usersService: UsersService,
+    private readonly usersRepository: UsersRepository,
   ) {}
 
   private hashToken(token: string): string {
@@ -28,7 +25,10 @@ export class PasswordResetTokensService {
     userId: string,
   ): Promise<{ token: string; record: PasswordResetToken }> {
     // Verify user exists
-    await this.usersService.findOne(userId);
+    const user = await this.usersRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
 
     const token = crypto.randomBytes(32).toString('hex');
     const token_hash = this.hashToken(token);
@@ -99,7 +99,10 @@ export class PasswordResetTokensService {
   }
 
   async removeByUserId(userId: string): Promise<number> {
-    await this.usersService.findOne(userId);
+    const user = await this.usersRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
     return this.repository.deleteByUserId(userId);
   }
 }

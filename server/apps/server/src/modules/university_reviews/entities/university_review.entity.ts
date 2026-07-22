@@ -25,6 +25,9 @@ export class UniversityReview {
   @ApiPropertyOptional({ description: 'Timestamp of deletion' })
   deleted_at?: Date;
 
+  @ApiPropertyOptional({ example: { c1: 5, c2: 4, c3: 5, c4: 3 } })
+  ratings?: Record<string, number>;
+
   @ApiProperty({ example: '2026-07-05T09:27:25Z' })
   created_at: Date;
 

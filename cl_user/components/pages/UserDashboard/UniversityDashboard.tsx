@@ -14,42 +14,62 @@ interface UniversityDashboardProps {
   averageRating: string;
 }
 
-function renderDashboardComment(comment: string) {
-  const isInsider = comment.includes("--- ĐÁNH GIÁ NGƯỜI TRONG CUỘC ---");
-  const isOutsider = comment.includes("--- ĐÁNH GIÁ NGƯỜI NGOÀI CUỘC ---");
+function renderDashboardComment(rev: UniversityReview) {
+  const ratings = rev.ratings;
+  const isInsider = ratings && 'isInsider' in ratings ? Boolean(ratings.isInsider) : rev.comment.includes("--- ĐÁNH GIÁ NGƯỜI TRONG CUỘC ---");
 
-  if (!isInsider && !isOutsider) {
-    const textOnly = comment.replace(/<[^>]*>/g, "");
-    return <p className="text-xs text-text-main font-light leading-relaxed wrap-break-word">{textOnly}</p>;
+  // Clean comment text from legacy HTML headers
+  let cleanedComment = rev.comment;
+  if (cleanedComment.includes("Nội dung chi tiết:")) {
+    const parts = cleanedComment.split("<strong>Nội dung chi tiết:</strong>");
+    if (parts.length > 1) {
+      cleanedComment = parts[1].replace(/<div>\s*([\s\S]*?)\s*<\/div>/, "$1").trim();
+    }
   }
+  const textOnly = cleanedComment.replace(/<[^>]*>/g, "").trim();
 
-  const lines = comment.split("\n");
-  const detailStartIdx = lines.findIndex((l) => l.includes("Nội dung chi tiết:"));
-  
-  const ratingLines = lines.filter((l) => l.includes("- ") && l.includes("/5"));
-  const rawDetailedText = detailStartIdx !== -1 ? lines.slice(detailStartIdx + 1).join("\n").trim() : "";
-  const detailedText = rawDetailedText.replace(/<[^>]*>/g, "").trim();
+  // Determine criteria ratings values
+  const c1Val = ratings?.c1 !== undefined ? Number(ratings.c1) : undefined;
+  const c2Val = ratings?.c2 !== undefined ? Number(ratings.c2) : undefined;
+  const c3Val = ratings?.c3 !== undefined ? Number(ratings.c3) : undefined;
+  const c4Val = ratings?.c4 !== undefined ? Number(ratings.c4) : undefined;
+
+  const c1Label = isInsider ? "Chất lượng đào tạo" : "Uy tín & Thương hiệu";
+  const c2Label = isInsider ? "Cơ sở vật chất" : "Học phí & Học bổng";
+  const c3Label = isInsider ? "Đội ngũ giảng viên" : "Vị trí & Khuôn viên";
+  const c4Label = isInsider ? "Đời sống sinh viên" : "Yêu cầu đầu vào";
+
+  const items = [
+    { label: c1Label, val: c1Val ?? rev.rating_stars },
+    { label: c2Label, val: c2Val ?? rev.rating_stars },
+    { label: c3Label, val: c3Val ?? rev.rating_stars },
+    { label: c4Label, val: c4Val ?? rev.rating_stars },
+  ];
 
   return (
-    <div className="space-y-2 mt-1 text-xs text-text-main">
-      {/* Ratings grid */}
-      <div className="grid grid-cols-2 gap-2 text-[10px] text-text-sub font-mono bg-brand-primary/5 p-2 rounded-lg border border-border-custom/40">
-        {ratingLines.map((line, idx) => {
-          const cleanLine = line.replace(/<[^>]*>/g, "").replace("- ", "").trim();
-          const [crit, val] = cleanLine.split(":");
-          return (
-            <div key={idx} className="flex items-center justify-between border-b border-border-custom/20 pb-0.5 font-sans">
-              <span className="truncate max-w-32.5" title={crit}>{crit}</span>
-              <span className="text-amber-500 font-bold ml-1 shrink-0">{val?.trim()}</span>
+    <div className="space-y-3 mt-1 text-xs text-text-main">
+      {/* Criteria ratings grid */}
+      <div className="grid grid-cols-2 gap-2 text-[10px] bg-brand-primary/5 p-2.5 rounded-lg border border-border-custom/40">
+        {items.map((item, idx) => (
+          <div key={idx} className="flex flex-col gap-1">
+            <div className="flex items-center justify-between text-text-sub">
+              <span className="truncate max-w-28 font-medium">{item.label}</span>
+              <span className="text-amber-500 font-bold font-mono">{item.val}/5 ★</span>
             </div>
-          );
-        })}
+            <div className="w-full bg-gray-200 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+              <div 
+                className="bg-amber-500 h-full rounded-full transition-all duration-300" 
+                style={{ width: `${(item.val || 0) * 20}%` }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Detailed comment text */}
-      {detailedText && (
-        <p className="text-xs italic leading-relaxed text-text-main border-l-2 border-brand-primary/40 pl-2">
-          &quot;{detailedText}&quot;
+      {textOnly && (
+        <p className="text-xs italic leading-relaxed text-text-main border-l-2 border-brand-primary/40 pl-2.5 py-0.5">
+          &quot;{textOnly}&quot;
         </p>
       )}
     </div>
@@ -63,13 +83,23 @@ export default function UniversityDashboard({
   admissions,
   averageRating,
 }: UniversityDashboardProps) {
-  // Filter reviews by insider vs outsider perspective
+  // Filter reviews by insider vs outsider perspective using ratings.isInsider or legacy text check
   const insiderReviews = useMemo(() => {
-    return reviews.filter((r) => r.comment.includes("--- ĐÁNH GIÁ NGƯỜI TRONG CUỘC ---"));
+    return reviews.filter((r) => {
+      if (r.ratings && 'isInsider' in r.ratings) {
+        return Boolean(r.ratings.isInsider);
+      }
+      return r.comment.includes("--- ĐÁNH GIÁ NGƯỜI TRONG CUỘC ---");
+    });
   }, [reviews]);
 
   const outsiderReviews = useMemo(() => {
-    return reviews.filter((r) => !r.comment.includes("--- ĐÁNH GIÁ NGƯỜI TRONG CUỘC ---"));
+    return reviews.filter((r) => {
+      if (r.ratings && 'isInsider' in r.ratings) {
+        return !Boolean(r.ratings.isInsider);
+      }
+      return !r.comment.includes("--- ĐÁNH GIÁ NGƯỜI TRONG CUỘC ---");
+    });
   }, [reviews]);
 
   return (
@@ -223,7 +253,7 @@ export default function UniversityDashboard({
                       </div>
                       <span className="text-[9px] text-text-sub font-mono">{rev.is_approved ? "Đã duyệt" : "Chờ duyệt"}</span>
                     </div>
-                    {renderDashboardComment(rev.comment)}
+                    {renderDashboardComment(rev)}
                   </div>
                 ))
               )}
@@ -263,7 +293,7 @@ export default function UniversityDashboard({
                       </div>
                       <span className="text-[9px] text-text-sub font-mono">{rev.is_approved ? "Đã duyệt" : "Chờ duyệt"}</span>
                     </div>
-                    {renderDashboardComment(rev.comment)}
+                    {renderDashboardComment(rev)}
                   </div>
                 ))
               )}

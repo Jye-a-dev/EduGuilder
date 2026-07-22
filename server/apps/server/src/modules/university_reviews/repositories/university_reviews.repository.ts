@@ -11,8 +11,8 @@ export class UniversityReviewsRepository {
   async create(data: Partial<UniversityReview>): Promise<UniversityReview> {
     const query = `
       INSERT INTO "university_reviews" (
-        university_id, reviewer_id, rating_stars, comment, official_reply, is_approved
-      ) VALUES ($1, $2, $3, $4, $5, $6)
+        university_id, reviewer_id, rating_stars, comment, official_reply, is_approved, ratings
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *;
     `;
     const values = [
@@ -22,6 +22,7 @@ export class UniversityReviewsRepository {
       data.comment,
       data.official_reply || null,
       data.is_approved ?? false,
+      data.ratings ? JSON.stringify(data.ratings) : '{}',
     ];
     const res = await this.pool.query<UniversityReview>(query, values);
     return res.rows[0];
@@ -118,7 +119,11 @@ export class UniversityReviewsRepository {
     const params: any[] = [id];
 
     fields.forEach((field) => {
-      params.push(updateData[field as keyof UniversityReview]);
+      let val: unknown = updateData[field as keyof UniversityReview];
+      if (field === 'ratings' && val && typeof val === 'object') {
+        val = JSON.stringify(val);
+      }
+      params.push(val);
       setClauses.push(`"${field}" = $${params.length}`);
     });
 

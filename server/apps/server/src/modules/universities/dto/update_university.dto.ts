@@ -48,6 +48,26 @@ export class UpdateUniversityDto {
   tuition_fees?: string | null;
 
   @ApiPropertyOptional({
+    example: 'https://ftu.edu.vn',
+    description: 'Official website URL',
+    nullable: true,
+  })
+  @IsString()
+  @IsOptional()
+  website_url?: string | null;
+
+  @ApiPropertyOptional({
+    example: 'công lập',
+    description: 'Type of the university',
+    enum: ['công lập', 'tư thục', 'quốc tế'],
+    nullable: true,
+  })
+  @IsString()
+  @IsIn(['công lập', 'tư thục', 'quốc tế'])
+  @IsOptional()
+  type?: string | null;
+
+  @ApiPropertyOptional({
     example: false,
     description: 'Verification status of the university',
   })

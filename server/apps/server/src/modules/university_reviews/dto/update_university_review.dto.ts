@@ -26,6 +26,10 @@ export class UpdateUniversityReviewDto {
   @IsOptional()
   official_reply?: string;
 
+  @ApiPropertyOptional({ example: { c1: 5, c2: 4 } })
+  @IsOptional()
+  ratings?: Record<string, number>;
+
   @ApiPropertyOptional({ example: true })
   @IsBoolean()
   @IsOptional()

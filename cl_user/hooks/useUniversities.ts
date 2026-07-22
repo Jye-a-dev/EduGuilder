@@ -9,6 +9,8 @@ export interface University {
   name: string;
   region: string;
   tuition_fees?: string;
+  website_url?: string;
+  type?: string;
   is_verified: boolean;
 }
 

@@ -11,8 +11,8 @@ export class UniversitiesRepository {
   async create(data: Partial<University>): Promise<University> {
     const query = `
       INSERT INTO "universities" (
-        code, name, region, logo_storage_key, tuition_fees, is_verified
-      ) VALUES ($1, $2, $3, $4, $5, $6)
+        code, name, region, logo_storage_key, tuition_fees, is_verified, website_url, type
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *;
     `;
     const values = [
@@ -22,6 +22,8 @@ export class UniversitiesRepository {
       data.logo_storage_key || null,
       data.tuition_fees || null,
       data.is_verified ?? false,
+      data.website_url || null,
+      data.type || null,
     ];
 
     const result = await this.pool.query<University>(query, values);

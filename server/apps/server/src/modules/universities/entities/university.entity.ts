@@ -43,6 +43,21 @@ export class University implements IUniversity {
   })
   tuition_fees?: string | null;
 
+  @ApiPropertyOptional({
+    example: 'https://ftu.edu.vn',
+    description: 'Official website URL',
+    nullable: true,
+  })
+  website_url?: string | null;
+
+  @ApiPropertyOptional({
+    example: 'công lập',
+    description: 'Type of the university',
+    nullable: true,
+    enum: ['công lập', 'tư thục', 'quốc tế'],
+  })
+  type?: string | null;
+
   @ApiProperty({
     example: false,
     default: false,

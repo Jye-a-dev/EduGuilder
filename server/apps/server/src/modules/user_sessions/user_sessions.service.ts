@@ -2,8 +2,6 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-  Inject,
-  forwardRef,
   UnauthorizedException,
 } from '@nestjs/common';
 import * as crypto from 'crypto';
@@ -11,14 +9,13 @@ import { UserSessionsRepository } from './repositories/user_sessions.repository'
 import { CreateUserSessionDto } from './dto/create_user_session.dto';
 import { QueryUserSessionDto } from './dto/query_user_session.dto';
 import { UserSession } from './entities/user_session.entity';
-import { UsersService } from '../users/users.service';
+import { UsersRepository } from '../users/repositories/users.repository';
 
 @Injectable()
 export class UserSessionsService {
   constructor(
     private readonly repository: UserSessionsRepository,
-    @Inject(forwardRef(() => UsersService))
-    private readonly usersService: UsersService,
+    private readonly usersRepository: UsersRepository,
   ) {}
 
   private hashToken(token: string): string {
@@ -26,7 +23,10 @@ export class UserSessionsService {
   }
 
   async create(dto: CreateUserSessionDto): Promise<UserSession> {
-    await this.usersService.findOne(dto.user_id);
+    const user = await this.usersRepository.findById(dto.user_id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${dto.user_id} not found`);
+    }
 
     const refresh_token_hash = this.hashToken(dto.refresh_token);
     const expires_at = new Date(Date.now() + 30 * 24 * 3600 * 1000); // 30 days session expiry
@@ -82,7 +82,10 @@ export class UserSessionsService {
   }
 
   async revokeAllForUser(userId: string): Promise<{ revoked: number }> {
-    await this.usersService.findOne(userId);
+    const user = await this.usersRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
     const count = await this.repository.revokeAllByUserId(userId);
     return { revoked: count };
   }

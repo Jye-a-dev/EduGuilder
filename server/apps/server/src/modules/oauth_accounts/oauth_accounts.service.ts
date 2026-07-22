@@ -2,26 +2,26 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
 import { OAuthAccountsRepository } from './repositories/oauth_accounts.repository';
 import { CreateOAuthAccountDto } from './dto/create_oauth_account.dto';
 import { QueryOAuthAccountDto } from './dto/query_oauth_account.dto';
 import { OAuthAccount } from './entities/oauth_account.entity';
-import { UsersService } from '../users/users.service';
+import { UsersRepository } from '../users/repositories/users.repository';
 
 @Injectable()
 export class OAuthAccountsService {
   constructor(
     private readonly oauthAccountsRepository: OAuthAccountsRepository,
-    @Inject(forwardRef(() => UsersService))
-    private readonly usersService: UsersService,
+    private readonly usersRepository: UsersRepository,
   ) {}
 
   async create(dto: CreateOAuthAccountDto): Promise<OAuthAccount> {
     // Verify user exists
-    await this.usersService.findOne(dto.user_id);
+    const user = await this.usersRepository.findById(dto.user_id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${dto.user_id} not found`);
+    }
 
     // Verify oauth provider is not already registered
     const existing = await this.oauthAccountsRepository.findByProvider(
@@ -52,7 +52,10 @@ export class OAuthAccountsService {
   }
 
   async findByUserId(userId: string): Promise<OAuthAccount[]> {
-    await this.usersService.findOne(userId);
+    const user = await this.usersRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
     return this.oauthAccountsRepository.findByUserId(userId);
   }
 
@@ -67,7 +70,10 @@ export class OAuthAccountsService {
   }
 
   async removeByUserId(userId: string): Promise<number> {
-    await this.usersService.findOne(userId);
+    const user = await this.usersRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
     return this.oauthAccountsRepository.deleteByUserId(userId);
   }
 }

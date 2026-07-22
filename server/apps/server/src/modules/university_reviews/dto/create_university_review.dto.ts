@@ -33,6 +33,10 @@ export class CreateUniversityReviewDto {
   @IsNotEmpty()
   comment: string;
 
+  @ApiPropertyOptional({ example: { c1: 5, c2: 4, c3: 5, c4: 3 } })
+  @IsOptional()
+  ratings?: Record<string, number>;
+
   @ApiPropertyOptional({ example: false })
   @IsBoolean()
   @IsOptional()
