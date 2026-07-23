@@ -57,7 +57,10 @@ export default function UniversitiesPage() {
       uni.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const isMyUniversity = (uniId: string) => user?.university_id === uniId;
+  const isMyUniversity = (uniId: string) => {
+    if (user?.role === "student") return false;
+    return user?.university_id === uniId;
+  };
 
   const myReview = useMemo(() => {
     if (!selectedUni || !user) return null;

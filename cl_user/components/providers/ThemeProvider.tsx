@@ -31,11 +31,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // On mount: read localStorage → fallback to system preference
   useEffect(() => {
     const stored = localStorage.getItem("theme") as Theme | null;
-    if (stored === "light" || stored === "dark") {
-      setTheme(stored);
-    } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
-      setTheme("light");
-    }
+    const nextTheme: Theme = (stored === "light" || stored === "dark")
+      ? stored
+      : window.matchMedia("(prefers-color-scheme: light)").matches
+      ? "light"
+      : "dark";
+
+    const handle = setTimeout(() => {
+      setTheme(nextTheme);
+    }, 0);
+    return () => clearTimeout(handle);
   }, []);
 
   // Sync html class whenever theme changes

@@ -55,6 +55,15 @@ async function request<T>(path: string, options: FetchOptions = {}): Promise<T> 
       Array.isArray(errData?.message)
         ? errData.message.join(", ")
         : errData?.message || `HTTP ${res.status}`;
+
+    if (res.status === 401) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("user_token");
+        localStorage.removeItem("user_profile");
+        window.location.href = "/login";
+      }
+    }
+
     throw new ApiError(msg, res.status);
   }
 

@@ -20,11 +20,13 @@ import {
   CreateNoteTableDto,
   CreateNoteSlideDto,
 } from './dto/note_sub_items.dto';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ApiNotes } from './notes.swagger';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
 @Controller('notes')
 @UseGuards(AuthGuard)
+@SkipThrottle()
 @ApiNotes.controller()
 export class NotesController {
   constructor(private readonly service: NotesService) {}
@@ -135,6 +137,16 @@ export class NotesController {
     return { message: `All tables for note ${id} were successfully deleted.` };
   }
 
+  @Delete(':id/tables/:tableId')
+  @HttpCode(200)
+  async deleteTable(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('tableId', ParseUUIDPipe) tableId: string,
+  ) {
+    await this.service.deleteTable(id, tableId);
+    return { message: `Table with ID ${tableId} was successfully deleted.` };
+  }
+
   // --- Slides ---
   @Post(':id/slides')
   @ApiNotes.addSlide()
@@ -151,5 +163,15 @@ export class NotesController {
   async clearSlides(@Param('id', ParseUUIDPipe) id: string) {
     await this.service.clearSlides(id);
     return { message: `All slides for note ${id} were successfully deleted.` };
+  }
+
+  @Delete(':id/slides/:slideId')
+  @HttpCode(200)
+  async deleteSlide(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('slideId', ParseUUIDPipe) slideId: string,
+  ) {
+    await this.service.deleteSlide(id, slideId);
+    return { message: `Slide with ID ${slideId} was successfully deleted.` };
   }
 }

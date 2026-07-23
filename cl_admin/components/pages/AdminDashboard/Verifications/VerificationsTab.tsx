@@ -71,7 +71,7 @@ export default function VerificationsTab({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm theo ID, mã, họ tên hoặc email sinh viên..."
+            placeholder="Tìm theo ID, mã, họ tên hoặc email học sinh..."
             className="w-full bg-cyber-card/60 border border-gray-800 rounded-lg pl-8 pr-4 py-2 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-cyber-primary/60 transition-colors"
           />
         </div>
@@ -123,7 +123,7 @@ export default function VerificationsTab({
           <thead>
             <tr className="border-b border-gray-900 bg-cyber-card/80 font-mono text-[10px] font-bold uppercase tracking-wider text-gray-400">
               <th className="p-4">Mã Yêu Cầu</th>
-              <th className="p-4">Sinh Viên / Tài Khoản</th>
+              <th className="p-4">Học Sinh / Tài Khoản</th>
               <th className="p-4">Ảnh Thẻ</th>
               <th className="p-4">Trạng Thái</th>
               <th className="p-4">Lý do từ chối</th>
@@ -158,7 +158,7 @@ export default function VerificationsTab({
                 <td colSpan={6} className="p-8 text-center text-gray-500 font-mono">
                   {search || statusFilter !== "all"
                     ? "Không có kết quả phù hợp với bộ lọc."
-                    : "Không tìm thấy yêu cầu xác thực sinh viên nào."}
+                    : "Không tìm thấy yêu cầu xác thực học sinh nào."}
                 </td>
               </tr>
             ) : (

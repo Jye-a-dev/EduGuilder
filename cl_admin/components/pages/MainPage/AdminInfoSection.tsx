@@ -26,8 +26,8 @@ export default function AdminInfoSection() {
           <div className="flex gap-3 rounded-xl border border-gray-900 bg-cyber-card/40 p-4 items-start">
             <i className="fa-solid fa-id-card mt-1 text-sm text-cyber-cyan" />
             <div>
-              <h4 className="text-sm font-bold text-gray-200">Xác thực Sinh Viên</h4>
-              <p className="mt-0.5 text-xs text-gray-500">Phê duyệt thẻ sinh viên viết bài đánh giá trường học.</p>
+              <h4 className="text-sm font-bold text-gray-200">Xác thực Học Sinh</h4>
+              <p className="mt-0.5 text-xs text-gray-500">Phê duyệt thẻ học sinh viết bài đánh giá trường học.</p>
             </div>
           </div>
 

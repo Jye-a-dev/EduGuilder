@@ -21,13 +21,13 @@ export class CreateNoteDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '# Markdown content',
     description: 'Note markdown content',
   })
   @IsString()
-  @IsNotEmpty()
-  content: string;
+  @IsOptional()
+  content?: string = '';
 
   @ApiPropertyOptional({
     example: ['nestjs', 'backend'],

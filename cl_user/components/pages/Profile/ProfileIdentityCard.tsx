@@ -9,7 +9,13 @@ interface ProfileIdentityCardProps {
   gpa: string;
   onOpenEmailModal: () => void;
   university?: University | null;
-  onUpdateUser?: (payload: { full_name?: string; password?: string }) => Promise<unknown>;
+  onUpdateUser?: (payload: {
+    full_name?: string;
+    password?: string;
+    university_id?: string | null;
+    current_grade?: number | null;
+  }) => Promise<unknown>;
+  universities?: University[];
 }
 
 export default function ProfileIdentityCard({
@@ -18,6 +24,7 @@ export default function ProfileIdentityCard({
   onOpenEmailModal,
   university,
   onUpdateUser,
+  universities,
 }: ProfileIdentityCardProps) {
   const roleLabel = user.role === "student" ? "Học sinh" : user.role === "uni" ? "Trường học" : "Quản trị viên";
 
@@ -27,6 +34,50 @@ export default function ProfileIdentityCard({
   const [isEditingPassword, setIsEditingPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
+
+  const [isEditingGrade, setIsEditingGrade] = useState(false);
+  const [currentGrade, setCurrentGrade] = useState<number | "">(user.current_grade ?? "");
+
+  const [isEditingUni, setIsEditingUni] = useState(false);
+  const [selectedUniId, setSelectedUniId] = useState(user.university_id ?? "");
+
+  const [prevUser, setPrevUser] = useState(user);
+  if (user !== prevUser) {
+    setPrevUser(user);
+    setFullName(user.full_name);
+    setCurrentGrade(user.current_grade ?? "");
+    setSelectedUniId(user.university_id ?? "");
+  }
+
+  const handleGradeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!onUpdateUser) return;
+    setFeedback(null);
+    try {
+      const val = currentGrade === "" ? null : Number(currentGrade);
+      await onUpdateUser({ current_grade: val });
+      setIsEditingGrade(false);
+      setFeedback("Cập nhật lớp học thành công! ✨");
+      setTimeout(() => setFeedback(null), 3000);
+    } catch (err: unknown) {
+      setFeedback(err instanceof Error ? err.message : "Cập nhật lớp học thất bại.");
+    }
+  };
+
+  const handleUniSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!onUpdateUser) return;
+    setFeedback(null);
+    try {
+      const val = selectedUniId === "" ? null : selectedUniId;
+      await onUpdateUser({ university_id: val });
+      setIsEditingUni(false);
+      setFeedback("Cập nhật trường hướng tới thành công! ✨");
+      setTimeout(() => setFeedback(null), 3000);
+    } catch (err: unknown) {
+      setFeedback(err instanceof Error ? err.message : "Cập nhật trường hướng tới thất bại.");
+    }
+  };
 
   const handleNameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,25 +232,105 @@ export default function ProfileIdentityCard({
         </div>
 
         {/* Student parameters */}
-        {user.role === "student" && (
-          <>
-            <div className="py-3 flex justify-between">
-              <span className="text-text-sub">Lớp học</span>
-              <span className="font-bold text-brand-primary">Lớp {user.current_grade || "N/A"}</span>
-            </div>
-            <div className="py-3 flex justify-between">
-              <span className="text-text-sub">GPA học bạ</span>
-              <span className="font-black text-brand-secondary font-mono">{gpa}</span>
-            </div>
-          </>
-        )}
+        {user.role === "student" && (() => {
+          const targetUni = universities?.find(u => u.id === user.university_id) || university;
+          const universityName = targetUni ? `${targetUni.name} (${targetUni.code})` : "Chưa chọn";
+          return (
+            <>
+              <div className="py-3 flex justify-between items-center gap-4">
+                <span className="text-text-sub shrink-0">Lớp học</span>
+                {isEditingGrade ? (
+                  <form onSubmit={handleGradeSubmit} className="flex items-center gap-1.5">
+                    <select
+                      value={currentGrade}
+                      onChange={(e) => setCurrentGrade(e.target.value ? Number(e.target.value) : "")}
+                      className="rounded-lg border border-border-custom bg-brand-dark/40 px-2 py-1 text-xs text-text-main outline-none focus:border-brand-primary"
+                    >
+                      <option value="">Chưa chọn</option>
+                      {[...Array(12)].map((_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          Lớp {i + 1}
+                        </option>
+                      ))}
+                    </select>
+                    <button type="submit" className="text-emerald-500 hover:text-emerald-400 text-xs font-bold cursor-pointer">Lưu</button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCurrentGrade(user.current_grade ?? "");
+                        setIsEditingGrade(false);
+                      }}
+                      className="text-text-sub hover:text-text-main text-xs cursor-pointer"
+                    >
+                      Hủy
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => setIsEditingGrade(true)}
+                    className="font-bold text-brand-primary hover:text-brand-primary transition-colors text-right flex items-center gap-1 cursor-pointer font-sans"
+                    title="Nhấn để đổi lớp"
+                  >
+                    <span>Lớp {user.current_grade || "N/A"}</span>
+                    <i className="fa-solid fa-pen text-[9px] text-text-sub shrink-0" />
+                  </button>
+                )}
+              </div>
+
+              <div className="py-3 flex justify-between items-center gap-4">
+                <span className="text-text-sub shrink-0">Trường hướng tới (Aim)</span>
+                {isEditingUni ? (
+                  <form onSubmit={handleUniSubmit} className="flex items-center gap-1.5">
+                    <select
+                      value={selectedUniId}
+                      onChange={(e) => setSelectedUniId(e.target.value)}
+                      className="rounded-lg border border-border-custom bg-brand-dark/40 px-2 py-1 text-xs text-text-main outline-none focus:border-brand-primary max-w-30"
+                    >
+                      <option value="">Không liên kết</option>
+                      {universities?.map((uni) => (
+                        <option key={uni.id} value={uni.id}>
+                          {uni.name} ({uni.code})
+                        </option>
+                      ))}
+                    </select>
+                    <button type="submit" className="text-emerald-500 hover:text-emerald-400 text-xs font-bold cursor-pointer">Lưu</button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedUniId(user.university_id ?? "");
+                        setIsEditingUni(false);
+                      }}
+                      className="text-text-sub hover:text-text-main text-xs cursor-pointer"
+                    >
+                      Hủy
+                    </button>
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => setIsEditingUni(true)}
+                    className="font-bold text-text-main hover:text-brand-primary transition-colors text-right flex items-center gap-1 cursor-pointer font-sans"
+                    title="Nhấn để đổi trường hướng tới"
+                  >
+                    <span className="truncate max-w-30">{universityName}</span>
+                    <i className="fa-solid fa-pen text-[9px] text-text-sub shrink-0" />
+                  </button>
+                )}
+              </div>
+
+              <div className="py-3 flex justify-between">
+                <span className="text-text-sub">GPA học bạ</span>
+                <span className="font-black text-brand-secondary font-mono">{gpa}</span>
+              </div>
+            </>
+          );
+        })()}
 
         {/* University parameters (merged for Uni Role) */}
         {user.role === "uni" && university && (
           <>
             <div className="py-3 flex justify-between gap-4">
               <span className="text-text-sub shrink-0">Tên trường</span>
-              <span className="font-bold text-text-main text-right break-words">{university.name}</span>
+              <span className="font-bold text-text-main text-right wrap-break-word">{university.name}</span>
             </div>
             <div className="py-3 flex justify-between">
               <span className="text-text-sub">Mã trường</span>
@@ -211,7 +342,7 @@ export default function ProfileIdentityCard({
             </div>
             <div className="py-3 flex justify-between gap-4">
               <span className="text-text-sub shrink-0">Học phí</span>
-              <span className="font-bold text-text-main text-right break-words">{university.tuition_fees || "Chưa cập nhật"}</span>
+              <span className="font-bold text-text-main text-right wrap-break-word">{university.tuition_fees || "Chưa cập nhật"}</span>
             </div>
           </>
         )}

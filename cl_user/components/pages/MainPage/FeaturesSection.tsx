@@ -2,7 +2,7 @@ export default function FeaturesSection() {
   const cards = [
     {
       icon: "fa-regular fa-file-lines",
-      title: "Obsidian Editor",
+      title: "Editor",
       body: "Soạn thảo văn bản dạng Markdown thô cực mượt. Hệ thống tự động phân tách tiêu đề và nội dung để lưu trữ kết cấu sạch sẽ.",
       accentClass: "text-brand-primary",
       hoverClass: "card-hover-border card-hover-border-primary",
@@ -33,7 +33,7 @@ export default function FeaturesSection() {
         <div className="text-center max-w-3xl mx-auto mb-20">
           <span className="text-brand-secondary text-xs font-black uppercase tracking-widest block mb-3">Kiến trúc lõi</span>
           <h2 className="text-4xl sm:text-5xl font-black mb-4" style={{ color: "var(--heading)" }}>
-            Trải Nghiệm Ghi Chép Chuẩn Obsidian
+            Trải Nghiệm Ghi Chép Chuẩn
           </h2>
           <p className="text-lg font-light" style={{ color: "var(--body-muted)" }}>
             Không chỉ ghi lại, EduPath giúp bạn lưu trữ dữ liệu dưới dạng đồ thị liên kết thực thụ.

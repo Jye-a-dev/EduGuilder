@@ -33,7 +33,7 @@ export default function StudentVerificationCard({
   return (
     <div className="rounded-2xl border border-border-custom bg-brand-card p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-text-main uppercase font-mono tracking-wider">Xác Thực Sinh Viên</h3>
+        <h3 className="text-sm font-bold text-text-main uppercase font-mono tracking-wider">Xác Thực Học Sinh</h3>
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-sm font-mono uppercase ${badgeClass}`}>
           {statusLabel}
         </span>
@@ -45,7 +45,7 @@ export default function StudentVerificationCard({
         </div>
       ) : verification?.status === "pending" ? (
         <div className="p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/15 text-xs text-amber-500 leading-relaxed font-light">
-          <i className="fa-regular fa-clock mr-1.5" /> Đang chờ duyệt hồ sơ. Admin sẽ kiểm tra mã thẻ sinh viên trong thời gian ngắn nhất.
+          <i className="fa-regular fa-clock mr-1.5" /> Đang chờ duyệt hồ sơ. Admin sẽ kiểm tra ảnh thẻ học sinh trong thời gian ngắn nhất.
         </div>
       ) : (
         <form onSubmit={onSubmit} className="space-y-3">

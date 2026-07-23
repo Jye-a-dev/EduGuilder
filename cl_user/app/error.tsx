@@ -87,7 +87,7 @@ export default function GlobalError({
       desc: "Phiên làm việc hết hạn hoặc thông tin đăng nhập không chính xác. Vui lòng đăng nhập lại.",
       btnText: "Đăng nhập lại",
       action: () => {
-        window.location.href = "/login";
+        window.location.assign("/login");
       },
     },
     403: {
@@ -97,7 +97,7 @@ export default function GlobalError({
       desc: "Tài khoản của bạn không được cấp quyền truy cập tài nguyên này.",
       btnText: "Quay lại trang chủ",
       action: () => {
-        window.location.href = "/";
+        window.location.assign("/");
       },
     },
     404: {
@@ -107,7 +107,7 @@ export default function GlobalError({
       desc: "Đường dẫn hoặc tài nguyên bạn yêu cầu không tồn tại trên hệ thống.",
       btnText: "Quay lại trang chủ",
       action: () => {
-        window.location.href = "/";
+        window.location.assign("/");
       },
     },
     409: {

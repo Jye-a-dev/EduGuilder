@@ -17,7 +17,8 @@ export const pgProvider = {
     });
 
     // Run connection test in the background so it does not block application startup
-    pool.connect()
+    pool
+      .connect()
       .then((client) => {
         const dbName = configService.get<string>('database.database');
         const host = configService.get<string>('database.host');

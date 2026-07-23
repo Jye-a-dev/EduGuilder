@@ -33,7 +33,7 @@ export class AuditLogInterceptor implements NestInterceptor {
     responseBody: unknown,
   ): Promise<void> {
     const { method, url, ip, headers } = request;
-    const userAgent = (headers['user-agent'] as string | undefined) || '';
+    const userAgent = headers['user-agent'] || '';
 
     const isWrite = ['POST', 'PATCH', 'PUT', 'DELETE'].includes(method);
     if (!isWrite) return;

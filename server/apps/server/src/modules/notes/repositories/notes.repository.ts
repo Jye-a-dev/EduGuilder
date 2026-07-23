@@ -268,6 +268,11 @@ export class NotesRepository {
     await this.pool.query(query, [noteId]);
   }
 
+  async deleteTable(noteId: string, tableId: string): Promise<void> {
+    const query = 'DELETE FROM "note_tables" WHERE note_id = $1 AND id = $2;';
+    await this.pool.query(query, [noteId, tableId]);
+  }
+
   async getNoteTables(noteId: string): Promise<NoteTable[]> {
     const query =
       'SELECT * FROM "note_tables" WHERE note_id = $1 ORDER BY table_index ASC;';
@@ -301,10 +306,46 @@ export class NotesRepository {
     await this.pool.query(query, [noteId]);
   }
 
+  async deleteSlide(noteId: string, slideId: string): Promise<void> {
+    const query = 'DELETE FROM "note_slides" WHERE note_id = $1 AND id = $2;';
+    await this.pool.query(query, [noteId, slideId]);
+  }
+
   async getNoteSlides(noteId: string): Promise<NoteSlide[]> {
     const query =
       'SELECT * FROM "note_slides" WHERE note_id = $1 ORDER BY slide_index ASC;';
     const res = await this.pool.query<NoteSlide>(query, [noteId]);
     return res.rows;
+  }
+
+  // --- NEW TREE / AUTO-LINK METHODS ---
+  async unlinkAllNotes(sourceId: string): Promise<void> {
+    const query = 'DELETE FROM "note_links" WHERE source_note_id = $1;';
+    await this.pool.query(query, [sourceId]);
+  }
+
+  async findNoteByTitle(
+    studentId: string,
+    title: string,
+  ): Promise<Note | null> {
+    const query = `
+      SELECT * FROM "notes" 
+      WHERE student_id = $1 AND LOWER(title) = LOWER($2) AND deleted_at IS NULL
+      LIMIT 1;
+    `;
+    const res = await this.pool.query<Note>(query, [studentId, title]);
+    return res.rows[0] || null;
+  }
+
+  async incrementStudentEcoPoints(
+    studentId: string,
+    points: number,
+  ): Promise<void> {
+    const query = `
+      UPDATE "users"
+      SET eco_points = eco_points + $1
+      WHERE id = $2 AND role = 'student';
+    `;
+    await this.pool.query(query, [points, studentId]);
   }
 }

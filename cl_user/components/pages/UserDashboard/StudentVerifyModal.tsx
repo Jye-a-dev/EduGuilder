@@ -30,7 +30,7 @@ export default function StudentVerifyModal({
           Yêu cầu xác thực tài khoản
         </h3>
         <p className="text-xs text-text-sub font-light leading-relaxed mb-4">
-          Vui lòng cung cấp đường dẫn ảnh thẻ học sinh/sinh viên của bạn để quản trị viên phê duyệt quyền đánh giá.
+          Vui lòng cung cấp đường dẫn ảnh thẻ học sinh của bạn để quản trị viên phê duyệt quyền đánh giá.
         </p>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>

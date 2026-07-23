@@ -141,7 +141,7 @@ CREATE TABLE "student_verifications" (
 
 
 -- ----------------------------------------------------------------------------
--- 5. TẦNG ĐỒ THỊ TRI THỨC OBSIDIAN & FILE MANAGER
+-- 5. TẦNG ĐỒ THỊ TRI THỨC & FILE MANAGER
 -- ----------------------------------------------------------------------------
 CREATE TABLE "notes" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -13,8 +13,8 @@ export default function Header({ universitiesCount }: HeaderProps) {
   let description = "Chỉ số vận hành hệ thống theo thời gian thực.";
 
   if (pathname.includes("/admin/verifications")) {
-    title = "Xác thực thẻ Sinh Viên";
-    description = "Phê duyệt hoặc từ chối thẻ sinh viên để cho phép đánh giá.";
+    title = "Xác thực thẻ Học Sinh";
+    description = "Phê duyệt hoặc từ chối thẻ học sinh để cho phép đánh giá.";
   } else if (pathname.includes("/admin/reviews")) {
     title = "Kiểm duyệt Reviews";
     description = "Duyệt nội dung nhận xét và phản hồi học sinh.";

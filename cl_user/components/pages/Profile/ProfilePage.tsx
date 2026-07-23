@@ -54,6 +54,9 @@ export default function ProfilePage() {
   const [gradeFeedback, setGradeFeedback] = useState<string | null>(null);
   const [isSubmittingGrade, setIsSubmittingGrade] = useState(false);
 
+  // Delete grade state
+  const [gradeIdToDelete, setGradeIdToDelete] = useState<string | null>(null);
+
   useEffect(() => {
     if (!user) return;
     const timer = setTimeout(() => {
@@ -175,16 +178,26 @@ export default function ProfilePage() {
     }
   };
 
-  const handleDeleteGrade = async (id: string) => {
-    if (!window.confirm("Xóa điểm môn học này?")) return;
+  const handleDeleteGrade = (id: string) => {
+    setGradeIdToDelete(id);
+  };
+
+  const confirmDeleteGrade = async () => {
+    if (!gradeIdToDelete) return;
     try {
-      await deleteGrade(id);
+      await deleteGrade(gradeIdToDelete);
+      setGradeIdToDelete(null);
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : "Lỗi xóa điểm.");
     }
   };
 
-  const handleInlineUpdate = async (payload: { full_name?: string; password?: string }) => {
+  const handleInlineUpdate = async (payload: {
+    full_name?: string;
+    password?: string;
+    university_id?: string | null;
+    current_grade?: number | null;
+  }) => {
     try {
       const updatedUser = await apiClient.patch<User>(`/users/${user.id}`, payload, { token });
       login(token, updatedUser);
@@ -197,6 +210,10 @@ export default function ProfilePage() {
   const gpa = grades.length > 0
     ? (grades.reduce((sum, g) => sum + g.score, 0) / grades.length).toFixed(2)
     : "Chưa có dữ liệu";
+
+  const studentTargetUni = user.role === "student" && user.university_id
+    ? universities.find(u => u.id === user.university_id)
+    : null;
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-12 relative">
@@ -233,6 +250,9 @@ export default function ProfilePage() {
                 setNewEmail(user.email);
                 setIsEmailModalOpen(true);
               }}
+              university={studentTargetUni}
+              onUpdateUser={handleInlineUpdate}
+              universities={universities}
             />
 
             {user.role === "student" && (
@@ -302,6 +322,43 @@ export default function ProfilePage() {
         isSubmittingGrade={isSubmittingGrade}
         onSubmit={handleGradeSubmit}
       />
+
+      {/* Modal: Xác nhận xóa điểm */}
+      {gradeIdToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-sm rounded-2xl border border-border-custom bg-brand-card shadow-2xl overflow-hidden flex flex-col p-6 text-center space-y-4 animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-center">
+              <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-400">
+                <i className="fa-solid fa-triangle-exclamation text-xl" />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold text-text-main font-mono uppercase">Xác nhận xóa</h3>
+              <p className="text-[11px] text-text-sub font-light mt-1.5 leading-relaxed">
+                Bạn có chắc chắn muốn xóa điểm môn học này? Hành động này không thể hoàn tác.
+              </p>
+            </div>
+
+            <div className="flex justify-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setGradeIdToDelete(null)}
+                className="px-4 py-2 border border-border-custom rounded-lg text-xs font-mono font-bold text-text-sub hover:text-text-main cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteGrade}
+                className="px-4 py-2 bg-rose-500 hover:bg-rose-600 rounded-lg text-xs font-mono font-bold text-white transition-colors cursor-pointer"
+              >
+                Xóa bỏ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

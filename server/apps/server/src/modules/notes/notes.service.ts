@@ -17,6 +17,54 @@ import {
 export class NotesService {
   constructor(private readonly repository: NotesRepository) {}
 
+  private async parseTagsAndLinks(
+    noteId: string,
+    studentId: string,
+    content: string,
+  ): Promise<void> {
+    const plainText = content.replace(/<[^>]*>/g, ' ');
+    // 1. Tag parsing & syncing
+    const tagRegex = /(?:^|\s)#([a-zA-Z0-9_\u00C0-\u1EF9]+)/g;
+    const tagNames: string[] = [];
+    let match: RegExpExecArray | null = null;
+    while ((match = tagRegex.exec(plainText)) !== null) {
+      const tagName = match[1].toLowerCase().trim();
+      if (tagName && !tagNames.includes(tagName)) {
+        tagNames.push(tagName);
+      }
+    }
+
+    await this.repository.detachTags(noteId);
+    for (const tagName of tagNames) {
+      const tag = await this.repository.getOrCreateTag(tagName);
+      await this.repository.attachTag(noteId, tag.id);
+    }
+
+    // 2. Link parsing & syncing (wiki-links [[title]])
+    const linkRegex = /\[\[(.*?)\]\]/g;
+    const linkTitles: string[] = [];
+    while ((match = linkRegex.exec(plainText)) !== null) {
+      const title = match[1].trim();
+      if (title && !linkTitles.includes(title)) {
+        linkTitles.push(title);
+      }
+    }
+
+    await this.repository.unlinkAllNotes(noteId);
+    for (const title of linkTitles) {
+      let targetNote = await this.repository.findNoteByTitle(studentId, title);
+      if (!targetNote) {
+        // Create draft note automatically if target note doesn't exist
+        targetNote = await this.repository.create({
+          student_id: studentId,
+          title: title,
+          content: `Draft note created automatically via wiki link.`,
+        });
+      }
+      await this.repository.linkNotes(noteId, targetNote.id);
+    }
+  }
+
   async create(createDto: CreateNoteDto): Promise<Note> {
     const note = await this.repository.create({
       student_id: createDto.student_id,
@@ -24,6 +72,17 @@ export class NotesService {
       content: createDto.content,
     });
 
+    // Gamification Eco-Points award +10 to student
+    await this.repository.incrementStudentEcoPoints(createDto.student_id, 10);
+
+    // Sync parsed tags & links
+    await this.parseTagsAndLinks(
+      note.id,
+      createDto.student_id,
+      createDto.content ?? '',
+    );
+
+    // Attach additional DTO tags if they exist
     if (createDto.tags && createDto.tags.length > 0) {
       for (const tagName of createDto.tags) {
         const tag = await this.repository.getOrCreateTag(tagName);
@@ -60,13 +119,17 @@ export class NotesService {
   }
 
   async update(id: string, updateDto: UpdateNoteDto): Promise<Note> {
-    await this.findOne(id);
+    const note = await this.findOne(id);
 
     const updateData: Partial<Note> = {};
     if (updateDto.title !== undefined) updateData.title = updateDto.title;
     if (updateDto.content !== undefined) updateData.content = updateDto.content;
 
     await this.repository.update(id, updateData);
+
+    if (updateDto.content !== undefined) {
+      await this.parseTagsAndLinks(id, note.student_id, updateDto.content);
+    }
 
     if (updateDto.tags !== undefined) {
       await this.repository.detachTags(id);
@@ -144,6 +207,11 @@ export class NotesService {
     await this.repository.deleteTables(noteId);
   }
 
+  async deleteTable(noteId: string, tableId: string): Promise<void> {
+    await this.findOne(noteId);
+    await this.repository.deleteTable(noteId, tableId);
+  }
+
   // --- Note Slides ---
   async addSlide(
     noteId: string,
@@ -156,5 +224,10 @@ export class NotesService {
   async clearSlides(noteId: string): Promise<void> {
     await this.findOne(noteId);
     await this.repository.deleteSlides(noteId);
+  }
+
+  async deleteSlide(noteId: string, slideId: string): Promise<void> {
+    await this.findOne(noteId);
+    await this.repository.deleteSlide(noteId, slideId);
   }
 }

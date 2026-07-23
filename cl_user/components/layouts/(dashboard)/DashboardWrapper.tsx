@@ -20,6 +20,26 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [prevPathname, setPrevPathname] = useState(pathname);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Load sidebar preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebar-collapsed");
+    if (saved === "true") {
+      const handle = setTimeout(() => {
+        setIsCollapsed(true);
+      }, 0);
+      return () => clearTimeout(handle);
+    }
+  }, []);
+
+  const toggleCollapse = () => {
+    setIsCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem("sidebar-collapsed", String(next));
+      return next;
+    });
+  };
 
   // Validate parameter role matches authenticated user role
   useEffect(() => {
@@ -72,6 +92,9 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
   const navLinks = user
     ? [
       { href: `/${user.role}/dashboard`, label: "Tổng quan", icon: "fa-solid fa-compass" },
+      ...(user.role === "student"
+        ? [{ href: "/student/notes", label: "Workspace", icon: "fa-solid fa-note-sticky" }]
+        : []),
       { href: `/${user.role}/knowledge`, label: "Đồ thị tri thức", icon: "fa-solid fa-circle-nodes" },
       {
         href: `/${user.role}/universities`,
@@ -117,23 +140,33 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
 
       {/* --- SIDEBAR --- */}
       <aside className={`
-        fixed md:sticky top-0 left-0 z-40 h-screen w-68
+        fixed md:sticky top-0 left-0 z-40 h-screen
         bg-brand-sidebar border-r border-border-custom
         flex flex-col justify-between py-6 px-4
         transition-all duration-300 ease-out
-        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+        ${isSidebarOpen ? "translate-x-0 w-68" : "-translate-x-full md:translate-x-0"}
+        ${isCollapsed && !isSidebarOpen ? "w-20" : "w-68"}
       `}>
+        {/* Toggle Collapse Button for Desktop */}
+        <button
+          onClick={toggleCollapse}
+          className="hidden md:flex absolute top-6 -right-3.5 w-7 h-7 rounded-full border border-border-custom bg-brand-card hover:bg-white/5 items-center justify-center text-text-sub hover:text-text-main shadow-md transition-colors cursor-pointer z-50"
+          title={isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
+        >
+          <i className={`fa-solid ${isCollapsed ? "fa-chevron-right" : "fa-chevron-left"} text-[10px]`} />
+        </button>
+
         <div className="space-y-8">
           {/* Logo brand */}
-          <div className="flex items-center gap-3 px-3">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20">
+          <div className={`flex items-center gap-3 px-3 transition-all ${isCollapsed ? "justify-center" : ""}`}>
+            <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-brand-primary to-brand-secondary flex items-center justify-center shadow-lg shadow-brand-primary/20 shrink-0">
               <i className="fa-solid fa-rocket text-white text-lg animate-pulse" />
             </div>
-            <div>
-              <span className="font-extrabold text-xl tracking-wider text-text-main font-mono uppercase">
+            {!isCollapsed && (
+              <span className="font-extrabold text-xl tracking-wider text-text-main font-mono uppercase animate-in fade-in duration-200">
                 EduPath
               </span>
-            </div>
+            )}
           </div>
 
           {/* Nav List */}
@@ -146,18 +179,22 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
                     <Link
                       href={link.href}
                       className={`
-                        group flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200
+                        group flex items-center rounded-xl text-sm font-semibold transition-all duration-200
+                        ${isCollapsed ? "justify-center p-3" : "gap-3.5 px-4 py-3"}
                         ${isActive
                           ? "bg-brand-primary/10 text-brand-primary shadow-xs"
                           : "text-text-sub hover:text-text-main hover:bg-gray-100/50 dark:hover:bg-gray-800/40"
                         }
                       `}
+                      title={isCollapsed ? link.label : undefined}
                     >
                       <i className={`
-                        ${link.icon} text-lg transition-transform duration-300 group-hover:scale-110
+                        ${link.icon} text-lg transition-transform duration-300 group-hover:scale-110 shrink-0
                         ${isActive ? "text-brand-primary" : "text-text-sub group-hover:text-text-main"}
                       `} />
-                      <span className="tracking-wide">{link.label}</span>
+                      {!isCollapsed && (
+                        <span className="tracking-wide animate-in fade-in duration-200">{link.label}</span>
+                      )}
                     </Link>
                   </li>
                 );
@@ -169,21 +206,27 @@ export default function DashboardWrapper({ children }: DashboardWrapperProps) {
         {/* Footer Profile Box & Logout */}
         <div className="space-y-4 pt-4 border-t border-border-custom">
           {/* User profile card matching screenshot - subtext role removed to prevent conflict */}
-          <div className="flex items-center gap-3 px-3 py-2 rounded-2xl bg-brand-primary/5 border border-brand-primary/10">
+          <div className={`flex items-center rounded-2xl bg-brand-primary/5 border border-brand-primary/10 ${isCollapsed ? "justify-center p-2" : "gap-3 px-3 py-2"}`}>
             <div className="w-10 h-10 rounded-full bg-brand-primary flex items-center justify-center font-bold text-sm text-white uppercase font-mono shrink-0">
               {getInitials(user.full_name)}
             </div>
-            <div className="truncate min-w-0">
-              <span className="block text-xs font-bold text-text-main truncate">{user.full_name}</span>
-            </div>
+            {!isCollapsed && (
+              <div className="truncate min-w-0 animate-in fade-in duration-200">
+                <span className="block text-xs font-bold text-text-main truncate">{user.full_name}</span>
+              </div>
+            )}
           </div>
 
           <button
             onClick={logout}
-            className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl text-xs font-bold text-red-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all duration-200"
+            className={`flex items-center rounded-xl text-xs font-bold text-red-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all duration-200 ${isCollapsed ? "justify-center p-3 w-full" : "w-full gap-3.5 px-4 py-2.5"
+              }`}
+            title={isCollapsed ? "Đăng xuất" : undefined}
           >
-            <i className="fa-solid fa-right-from-bracket text-base" />
-            <span>Đăng xuất</span>
+            <i className="fa-solid fa-right-from-bracket text-base shrink-0" />
+            {!isCollapsed && (
+              <span className="animate-in fade-in duration-200">Đăng xuất</span>
+            )}
           </button>
         </div>
       </aside>

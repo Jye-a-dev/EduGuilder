@@ -50,7 +50,7 @@ export default function RegisterVisualPanel() {
           {[
             {
               icon: "fa-solid fa-file-lines",
-              title: "Obsidian Editor",
+              title: "Editor",
               desc: "Markdown thô cực mượt với liên kết nội bộ",
               color: "#3B82F6",
             },
